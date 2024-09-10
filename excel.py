@@ -14,7 +14,7 @@ def min_speed_list():
 
 def field_length_list():
 	landing_airdensity = 101325/(287*(c.landing_temp_diff+288.15))
-	return np.ones(c.inputs)*1/c.landing_massfraction*c.landing_fieldlengthreq/0.45*landing_airdensity*c.clmax_landing/2
+	return 1/c.landing_massfraction*c.landing_fieldlengthreq/0.45*landing_airdensity*c.clmax_landing/2
 
 
 def cruise_speed_list():
@@ -55,17 +55,21 @@ def to_field_length_list():
 	to_thrust_lapse = to_delta_pressure*(1-(0.43+0.014*c.bypass_ratio)*np.sqrt(to_mach_number))
 	
 	return (1.15*to_thrust_lapse*np.sqrt(2 * wing_loading/(c.to_field_length * 0.85 * to_density * 9.81 * math.pi * c.to_oswald_efficiency * c.aspect_ratio))+ 2*(4*11)/c.to_field_length)
+    
 
+x_const = [100*i for i in range(0,91)]
 
-plt.plot(wing_loading, cruise_speed_list())
-plt.plot([min_speed_list()]*91, [100*i for i in range(0,91)])
-plt.plot([field_length_list()]*91, [100*i for i in range(0,91)])
+plt.plot(wing_loading, cruise_speed_list(), label = "Cruise speed")
+plt.plot([min_speed_list()]*91, x_const, label = "Minimum speed")
+plt.plot([field_length_list()]*91, x_const, label = "Landing Field Length")
 for i in range(0,5):
 	gradient = climb_gradient(i)
-	plt.plot(wing_loading, gradient.climb_gradient_list())
-plt.grid()
-plt.plot(wing_loading, to_field_length_list())
+	plt.plot(wing_loading, gradient.climb_gradient_list(), label = "Climb Gradient " + str(i))
+plt.plot(wing_loading, to_field_length_list(), label = "Takeoff Field Length")
+
 plt.ylim(0,1)
+plt.legend()
+plt.grid()
 plt.show()
 
 
