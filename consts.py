@@ -7,6 +7,8 @@ landing_fieldlengthreq = 1786
 cruise_massfraction = 0.95
 cruise_altitude = 9449.8
 cruise_minmach = 0.85
+    
+
 
 aspect_ratio = 10
 
