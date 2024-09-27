@@ -106,7 +106,7 @@ def mainloop(aspect_ratio): #I have it set to vary aspect ratio. This doesn't af
 	C_lp = -4 * (c.C_lalpha + c.C_d0)/(S * np.power(span,2)) * ((chord_root/3 * np.power(span/2,3) - inter * np.power(span/2,4)/4))
 
 	C_lda = -(c.P * C_lp)/(c.dalpha) * (span/(2*c.stall_speed))
-	b_2 = np.roots([2/3 * (chord_root - chord_tip)/span, -chord_root/2, 0, chord_root/2 * np.power(y_2, 2) - 2/3 * (chord_root - chord_tip)/span * np.power(y_2, 3) + (C_lda*S*span)/(2*c.C_lalpha*c.tau)])
+	b_2 = np.roots([2/3 * (chord_root - chord_tip)/span, -chord_root/2, 0, chord_root/2 * np.power(y_2, 2) - 2/3 * (chord_root - chord_tip)/span * np.power(y_2, 3) + (C_lda*S*span)/(2*c.C_lalpha*c.tau)])[1]
 	print("b_2 for alieron (select the reasonable one):",b_2)
 
 	cruise_density = (101325*(1+(-0.0065*c.cruise_altitude/288.15))**(-9.81/(-0.0065*287))) /(287*c.cruise_temp)
@@ -129,10 +129,10 @@ for iterator in range(10,120,10):
 
 optimalSAR = max(SARs)
 optimal = results[SARs.index(optimalSAR)] #print the optimal results based on optimal aspect ratio
-print("\n### RESULTS ###\n")
-print("Optimal SAR:", optimalSAR, "\n###")
-labels = ['Aspect_ratio:', 'S:', 'Span:', 'Chord_root:', 'Chord_tip:', 'S_wf:','y_1:', 'y_2:', 'b_2 (pick):']
+optimal.insert(0,optimalSAR)
+labels = [["Optimal SAR:", 'Aspect_ratio:', 'S:', 'Span:', 'Chord_root:', 'Chord_tip:', 'S_wf:','y_1 (HLD):', 'y_2 (HLD):', 'b_2 (Aileron):'],["[m/kg]", "","[m^2]","[m]","[m]","[m^2]","","","",""]]
+print("\n###{:^36}###".format("RESULTS"))
 # print(optimal)
 for i in range(len(optimal)):
-	print(labels[i], optimal[i], end="\n###\n")
+	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
 
