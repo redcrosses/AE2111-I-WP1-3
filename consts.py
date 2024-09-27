@@ -2,16 +2,16 @@ import numpy as np
 inputs = 91
 
 max_to_mass = 265625 #kg
+aspect_ratio = 10
 
-approach_speed = 78
+approach_speed = 78 
 landing_massfraction = 0.79
 landing_temp_diff = 15
 landing_fieldlengthreq = 1981.2
+clmax_landing = 2.6 #CL design
 cruise_massfraction = 0.95
 cruise_altitude = 9449.8
 cruise_minmach = 0.85
-
-aspect_ratio = 9
 
 to_massfraction = 0.85
 to_altitude = 7400
@@ -36,19 +36,18 @@ climbgradient_oswaldfactor = [0.867622569, 0.828622569, 0.828622569, 0.789622569
 
 ## HLDs and Control Surfaces
 sweep_sixc = 0.445791998
-sweep_quarter = np.radians(31.35)
+sweep_quarter = np.radians(31.35) #actually leading edge lmao
 taper_ratio = 0.2*(2-sweep_quarter)
 hld_margin = 1
 
 CLratio = 0.96
 Clmax = 2.097
-clmax_landing = 2.6 #CL design
 CLmax_wingclean = 2.013
 
 c_ratio = 1.21 #Fowler flap ratio
 delta_clmax = 1.3 * c_ratio
 C_lalpha = 6.7614
-C_d0 = 0.0008
+C_d0 = 0.0008 #wing
 
 P = np.radians(20)
 stall_speed = 69.44
@@ -56,5 +55,7 @@ dalpha = 0.4581
 
 tau = 0.4
 
-TSFC = 1
+tsfc = 22*np.power(bypass_ratio,-0.19)*1E-6 #from adsee estimation for turbofans?? or how else do you do it lol
+c_L_cruise = 0.52924 #from the cruise angle of attack section
+C_D0_cruise = 0.0168 #from Fred's excel Drag polar section
 
