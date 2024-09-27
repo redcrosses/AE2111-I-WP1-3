@@ -2,8 +2,7 @@ import numpy as np
 import consts as c
 import math
 import matplotlib.pyplot as plt
-
-
+from intersect import intersection
 
 wing_loading = np.arange(0,9100,100)
 
@@ -58,8 +57,9 @@ def to_field_length_list():
 
 x_const = [100*i for i in range(0,91)]
 
+# x, y = intersection(wing_loading, cruise_speed_list, np.ones(91) * min_speed_list(), x_const)
 
-plt.plot(wing_loading, cruise_speed_list(), label = "Cruise speed")
+plt.plot(wing_loading)
 plt.plot([min_speed_list()]*91, x_const, label = "Minimum speed")
 plt.plot([field_length_list()]*91, x_const, label = "Landing Field Length")
 gradient = climb_gradient(0)
@@ -72,5 +72,24 @@ plt.plot(wing_loading, to_field_length_list(), label = "Takeoff Field Length")
 plt.ylim(0,1)
 plt.legend()
 plt.grid()
-plt.show()
+# plt.show()
 
+
+
+##HLDs and Control surfaces 
+
+CLmax = c.CLratio * c.Clmax
+delta_CLmax = c.clmax_landing - c.CLmax_wingclean
+
+S_ratio = delta_CLmax/(0.9 * c.delta_clmax * np.cos(c.sweep_sixc) ) #change to radians!
+
+S_wf = S_ratio * c.S
+# print(S_wf)
+quad_roots = np.min(np.roots([-(c.chord_root - c.chord_tip)/(c.span), c.chord_root, ((c.chord_root - c.chord_tip)/(c.span) * np.pow(c.y_1,2) - c.chord_root*c.y_1 - S_wf/2)]))
+# print(quad_roots)
+inter = 2* (c.chord_root - c.chord_tip)/c.span
+C_lp = -4 * (c.C_lalpha + c.C_d0)/(c.S * np.pow(c.span,2)) * ((c.chord_root/3 * np.pow(c.span/2,3) - inter * np.pow(c.span/2,4)/4))
+
+print(C_lp)
+
+C_lda = -(c.P * C_lp)/(c.dalpha) * (c.span/(2*c.stall_speed))
