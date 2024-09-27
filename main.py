@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from intersect import intersection
 
-wing_loading = np.arange(0,9100,100)
+wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
 
 def min_speed_list():
 	landing_airdensity = 101325/(287*(c.landing_temp_diff+288.15))
@@ -54,12 +54,11 @@ def to_field_length_list():
 	to_thrust_lapse = to_delta_pressure*(1-(0.43+0.014*c.bypass_ratio)*np.sqrt(to_mach_number))
 	return (1.15*to_thrust_lapse*np.sqrt(2 * wing_loading/(c.to_field_length * 0.85 * to_density * 9.81 * math.pi * c.to_oswald_efficiency * c.aspect_ratio))+ 2*(4*11)/c.to_field_length)
 
-
 x_const = [100*i for i in range(0,91)]
 
-# x, y = intersection(wing_loading, cruise_speed_list, np.ones(91) * min_speed_list(), x_const)
+design_point = intersection(wing_loading, cruise_speed_list(), np.ones(91) * min_speed_list(), x_const)
 
-plt.plot(wing_loading)
+plt.plot(wing_loading, cruise_speed_list(), label = "Cruise speed")
 plt.plot([min_speed_list()]*91, x_const, label = "Minimum speed")
 plt.plot([field_length_list()]*91, x_const, label = "Landing Field Length")
 gradient = climb_gradient(0)
@@ -69,27 +68,40 @@ for i in range(1,5):
 	plt.plot(wing_loading, gradient.climb_gradient_list(), label = "Climb Gradient " + str(i+1))
 plt.plot(wing_loading, to_field_length_list(), label = "Takeoff Field Length")
 
+plt.plot(design_point[0], design_point[1],"ro")
+
 plt.ylim(0,1)
 plt.legend()
 plt.grid()
-# plt.show()
-
-
+plt.show()
 
 ##HLDs and Control surfaces 
+S = c.max_to_mass*9.81 / float(design_point[0][0]) #<- column and row position avoids deprecation warning
+print("S:",S)
+
+#wing parameters calculated from wing area
+span = np.sqrt(c.aspect_ratio*S)
+chord_root = 2*S / ((1+c.taper_ratio)*span)
+chord_tip = chord_root * c.taper_ratio
+y_1 = 0.15*span/2 #position of the beginning of the HLD; 15% of the half-span
+print("Span:", span, "Root Chord:", chord_root, "Tip Chord:", chord_tip, "y_1:", y_1, "HLD margin:", c.hld_margin)
+##############
 
 CLmax = c.CLratio * c.Clmax
 delta_CLmax = c.clmax_landing - c.CLmax_wingclean
 
 S_ratio = delta_CLmax/(0.9 * c.delta_clmax * np.cos(c.sweep_sixc) ) #change to radians!
 
-S_wf = S_ratio * c.S
+S_wf = S_ratio * S
 # print(S_wf)
-quad_roots = np.min(np.roots([-(c.chord_root - c.chord_tip)/(c.span), c.chord_root, ((c.chord_root - c.chord_tip)/(c.span) * np.pow(c.y_1,2) - c.chord_root*c.y_1 - S_wf/2)]))
-# print(quad_roots)
-inter = 2* (c.chord_root - c.chord_tip)/c.span
-C_lp = -4 * (c.C_lalpha + c.C_d0)/(c.S * np.pow(c.span,2)) * ((c.chord_root/3 * np.pow(c.span/2,3) - inter * np.pow(c.span/2,4)/4))
+y_2 = np.min(np.roots([-(chord_root - chord_tip)/(span), chord_root, ((chord_root - chord_tip)/(span) * np.pow(y_1,2) - chord_root*y_1 - S_wf/2)])) + c.hld_margin
+print("y_2 for HLD:", y_2)
+inter = 2* (chord_root - chord_tip)/span
+C_lp = -4 * (c.C_lalpha + c.C_d0)/(S * np.pow(span,2)) * ((chord_root/3 * np.pow(span/2,3) - inter * np.pow(span/2,4)/4))
 
-print(C_lp)
+C_lda = -(c.P * C_lp)/(c.dalpha) * (span/(2*c.stall_speed))
+b_2 = np.roots([2/3 * (chord_root - chord_tip)/span, -chord_root/2, 0, chord_root/2 * np.pow(y_2, 2) - 2/3 * (chord_root - chord_tip)/span * np.pow(y_2, 3) + (C_lda*S*span)/(2*c.C_lalpha*c.tau)])
+print("b_2 for alieron (select the reasonable one):",b_2)
 
-C_lda = -(c.P * C_lp)/(c.dalpha) * (c.span/(2*c.stall_speed))
+
+# SAR = c.cruise_minmach*np.sqrt(1.4*c.cruise_temp*287)/(drag*c.TSFC)
