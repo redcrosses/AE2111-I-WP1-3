@@ -115,7 +115,7 @@ def mainloop(aspect_ratio): #I have it set to vary aspect ratio. This doesn't af
 	c_Drag = c.C_D0_cruise + np.power(c.c_L_cruise,2)/(np.pi*aspect_ratio*cruise_oswald_efficiency)
 	Drag = c_Drag * 0.5*cruise_density*np.power(cruise_velocity,2) * S
 
-	SAR = cruise_velocity/(Drag*c.tsfc)
+	SAR = c.specific_fuel_energy*c.jet_efficiency/(Drag)
 	return [SAR, aspect_ratio, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2]
 
 results = []

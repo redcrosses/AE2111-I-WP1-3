@@ -55,7 +55,11 @@ dalpha = 0.4581
 
 tau = 0.4
 
-tsfc = 22*np.power(bypass_ratio,-0.19)*1E-6 #from adsee estimation for turbofans?? or how else do you do it lol
+specific_fuel_energy = 44e6
+jet_efficiency = 0.75
+
+# tsfc = 22*np.power(bypass_ratio,-0.19)*1E-6 #from adsee estimation for turbofans?? or how else do you do it lol
+# print(tsfc)
 c_L_cruise = 0.52924 #from the cruise angle of attack section
 C_D0_cruise = 0.0168 #from Fred's excel Drag polar section
 
