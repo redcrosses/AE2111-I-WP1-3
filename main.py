@@ -61,6 +61,14 @@ def find_design_point(target_pos, lines_arr):
 		yvals.append(intrsctn[1])
 	return intersections[yvals.index(max(yvals))] #return the point in the intersections list that has the maximum y-value of the intersection.
 
+def planform_print(span, root_c, tip_c,sweep_quart):
+	plt.clf()
+	x = [0,0,span/2, span/2,0]
+	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
+	plt.plot(x,y, 'ro-')
+	plt.gca().set_aspect('equal', 'box')
+	plt.show()
+
 def mainloop(aspect_ratio): #I have it set to vary aspect ratio. This doesn't affect the SAR lol
 	print("Aspect ratio:", aspect_ratio)
 	x_const = [100*i for i in range(0,91)]
@@ -76,12 +84,12 @@ def mainloop(aspect_ratio): #I have it set to vary aspect ratio. This doesn't af
 	
 	design_point = find_design_point(0,lines) #make minimum speed line the target
 
-	for i in range(len(lines)): #plotting all lines
-		plt.plot(lines[i][0], lines[i][1], label = labels[i])
-	plt.plot(design_point[0], design_point[1],"ro")
-	plt.ylim(0,1)
-	plt.legend()
-	plt.grid()
+	# for i in range(len(lines)): #plotting all lines
+	# 	plt.plot(lines[i][0], lines[i][1], label = labels[i])
+	# plt.plot(design_point[0], design_point[1],"ro")
+	# plt.ylim(0,1)
+	# plt.legend()
+	# plt.grid()
 	# plt.show() #uncomment to show the plot
 
 	##HLDs and Control surfaces 
@@ -136,3 +144,4 @@ print("\n###{:^36}###".format("RESULTS"))
 for i in range(len(optimal)):
 	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
 
+planform_print(optimal[3],optimal[4],optimal[5],c.sweep_quarter)
