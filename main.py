@@ -102,7 +102,7 @@ def mainloop(aspect_ratio): #I have it set to vary aspect ratio. you can change 
 	y_1 = 0.15*span/2 #position of the beginning of the HLD; 15% of the half-span
 	print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
 
-	delta_CLmax =  clmax_landing -  CLmax_wingclean
+	delta_CLmax =  clmax_landing - 0.3 -  CLmax_wingclean
 
 	S_ratio = delta_CLmax/(0.9 *  delta_clmax * np.cos(sweep_sixc))
 
@@ -131,8 +131,8 @@ def mainloop(aspect_ratio): #I have it set to vary aspect ratio. you can change 
 
 results = []
 SARs = []
-for iterator in range(10,160,10): #iterating the design
-	var = iterator/10
+for iterator in range(7800,8200,1): #iterating the design
+	var = iterator/1000
 	run = mainloop(var)
 	SARs.append(run[0])
 	results.append(run[1:])

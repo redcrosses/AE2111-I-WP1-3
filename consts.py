@@ -39,10 +39,12 @@ sweep_quarter = np.radians(31.35) #actually leading edge lmao
 taper_ratio = 0.2*(2-sweep_quarter)
 hld_margin = 1
 
-Clratio = 0.96
+# aspect_ratio = 8
+
+Clratio = 1.04
 Clmax = 1.797 #1.797 gives imaginary values for aileron position
 CLmax_wingclean = Clratio * Clmax
-clmax_landing = 2.6 #CL design or CLmax,extended
+clmax_landing = 2.9 #CL design or CLmax,extended
 
 c_ratio = 1.3 #<- at 1.3 the aileron has no space, so we need a different HLD? #Fowler flap ratio = 1.3
 delta_clmax = 1.3 * c_ratio
