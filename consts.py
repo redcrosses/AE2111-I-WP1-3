@@ -8,7 +8,6 @@ approach_speed = 78
 landing_massfraction = 0.79
 landing_temp_diff = 15
 landing_fieldlengthreq = 1981.2
-clmax_landing = 2.6 #CL design
 cruise_massfraction = 0.95
 cruise_altitude = 9449.8
 cruise_minmach = 0.85
@@ -40,11 +39,12 @@ sweep_quarter = np.radians(31.35) #actually leading edge lmao
 taper_ratio = 0.2*(2-sweep_quarter)
 hld_margin = 1
 
-CLratio = 0.96
-Clmax = 2.097
-CLmax_wingclean = 2.013
+Clratio = 0.96
+Clmax = 1.797 #1.797 gives imaginary values for aileron position
+CLmax_wingclean = Clratio * Clmax
+clmax_landing = 2.6 #CL design or CLmax,extended
 
-c_ratio = 1.21 #Fowler flap ratio
+c_ratio = 1.3 #<- at 1.3 the aileron has no space, so we need a different HLD? #Fowler flap ratio = 1.3
 delta_clmax = 1.3 * c_ratio
 C_lalpha = 6.7614
 C_d0 = 0.0008 #wing
