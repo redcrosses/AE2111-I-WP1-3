@@ -64,7 +64,7 @@ def find_design_point(target_pos, lines_arr):
 
 def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.clf()
-	x = [0,0,span/2, span/2,0]
+	x = [0,0,span, span,0]
 	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
 	plt.plot(x,y, 'ro-')
 	plt.gca().set_aspect('equal', 'box')
@@ -131,7 +131,7 @@ def mainloop(aspect_ratio): #I have it set to vary aspect ratio. you can change 
 
 results = []
 SARs = []
-for iterator in range(7800,8200,1): #iterating the design
+for iterator in range(8019,8021,1): #iterating the design
 	var = iterator/1000
 	run = mainloop(var)
 	SARs.append(run[0])
@@ -148,6 +148,6 @@ print("Iterated variable: {:>18}".format(mainloop.__code__.co_varnames[0]))
 for i in range(len(optimal)):
 	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
 
-planform_print(optimal[3],optimal[4],optimal[5], sweep_quarter)
+planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
 
 #to iterate a different parameter, try to change the mainloop function argument to the desired one. Then, in the main loop, change the iterated range to the desired one together with the divisor for the var.
