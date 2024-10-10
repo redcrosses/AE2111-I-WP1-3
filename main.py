@@ -6,6 +6,21 @@ from intersect import intersection
 import inspect
 
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
+#class I weight estimation
+def Class_1_est(Lift,Drag,h_CR,V_CR,eff_eng,eff_prop,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
+    # energy fuel is like the weird 41sth/kw or idk
+	#t_E is the Loiter time in emergencies
+    g=9.81
+    R_lost = 1/0.7 * (Lift/Drag) * (h_CR + (V_CR**2)/(2*g)) # lost range via : LIft/Drag , height of cruise, velocity cruise
+    R_eq = (R_nom + R_lost)(1+f_con)+1.2 
+    R_div + t_E * V_CR # nominal and lost range plus fraction trip fuel for contingency
+    m_f = 1- np.exp((-1* R_eq * Drag * g)/(eff_eng * eff_prop * energy_fuel * Lift))
+
+    M_MTO = M_pl /(1-(m_OE)-(m_f))  # m_OE taken from reference or hallucinated
+    M_f = m_f * M_MTO
+    M_OE= m_OE * M_MTO
+    
+    return(M_OE, M_f, M_MTO) #in kilos small m is mass fraction, big M is acutal mass
 
 def min_speed_list(clmax_landing):
 	landing_airdensity = 101325/(287*( landing_temp_diff+288.15))
@@ -102,6 +117,10 @@ def mainloop(clmax_landing):
 	y_1 = 0.10*span/2 #position of the beginning of the HLD; 15% of the half-span
 	print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
 
+	#sweep angle relations
+	sweep_LE = tan(sweep_quarter)
+	
+	#HLD and Control surfaces placement
 	delta_CLmax =  clmax_landing - cl_leadingedge -  CLmax_wingclean
 
 	S_ratio = delta_CLmax/(0.9 *  delta_clmax * np.cos(sweep_sixc))
