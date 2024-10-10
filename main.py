@@ -70,7 +70,7 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.gca().set_aspect('equal', 'box')
 	plt.show()
 
-def mainloop(aspect_ratio): #I have it set to vary aspect ratio. you can change it to something else
+def mainloop(clmax_landing):
 	x_const = [100*i for i in range(0,91)]
 	lines = [([min_speed_list(clmax_landing)]*91, x_const), ([field_length_list(clmax_landing)]*91, x_const),(wing_loading, cruise_speed_list())]
 	labels = ["Minimum speed","Landing Field Length","Cruise speed","Climb Gradient 1","Climb Gradient 2","Climb Gradient 3","Climb Gradient 4","Climb Gradient 5","Takeoff Field Length"]
@@ -99,10 +99,10 @@ def mainloop(aspect_ratio): #I have it set to vary aspect ratio. you can change 
 	span = np.sqrt(aspect_ratio*S)
 	chord_root = 2*S / ((1+ taper_ratio)*span)
 	chord_tip = chord_root *  taper_ratio
-	y_1 = 0.15*span/2 #position of the beginning of the HLD; 15% of the half-span
+	y_1 = 0.10*span/2 #position of the beginning of the HLD; 15% of the half-span
 	print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
 
-	delta_CLmax =  clmax_landing - 0.3 -  CLmax_wingclean
+	delta_CLmax =  clmax_landing - cl_leadingedge -  CLmax_wingclean
 
 	S_ratio = delta_CLmax/(0.9 *  delta_clmax * np.cos(sweep_sixc))
 
@@ -127,11 +127,12 @@ def mainloop(aspect_ratio): #I have it set to vary aspect ratio. you can change 
 	name,_,_,argvalue = inspect.getargvalues(frame)
 	iteratedvalue = argvalue[name[0]]
 	print(name, iteratedvalue)
-	return [SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1]]
+	thrust_max = float(design_point[1][0])*max_to_mass*9.81 /1000
+	return [SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max]
 
 results = []
 SARs = []
-for iterator in range(8019,8021,1): #iterating the design
+for iterator in range(2670,2671,1): #iterating the design
 	var = iterator/1000
 	run = mainloop(var)
 	SARs.append(run[0])
@@ -141,13 +142,13 @@ for iterator in range(8019,8021,1): #iterating the design
 optimalSAR = max(SARs) #optimal is found when the SAR is maximum in the iterated range
 optimal = results[SARs.index(optimalSAR)] #print the optimal results based on optimal aspect ratio
 optimal.insert(0,optimalSAR)
-labels = [["Optimal SAR:",'Iterated value:', 'S:', 'Span:', 'Chord_root:', 'Chord_tip:', 'S_wf:','y_1 (HLD):', 'y_2 (HLD):', 'b_2 (Aileron):'],["[m/kg]", "", "","[m^2]","[m]","[m]","[m^2]","","","",""]]
+labels = [["Optimal SAR:",'Iterated value:', 'S:', 'Span:', 'Chord_root:', 'Chord_tip:', 'S_wf:','y_1 (HLD):', 'y_2 (HLD):', 'b_2 (Aileron):', 'Maximum Thrust:'],["[m/kg]", "","[m^2]", "[m]","[m]","[m]","[m^2]","[m]","[m]","[m]",'[kN]']]
 print("\n###{:^36}###".format("RESULTS"))
 
-print("Iterated variable: {:>18}".format(mainloop.__code__.co_varnames[0]))
+print("\nIterated variable: {:>18}".format(mainloop.__code__.co_varnames[0]))
 for i in range(len(optimal)):
 	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
-
+print("Diff:",optimal[3]/2 - optimal[9])
 planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
 
 #to iterate a different parameter, try to change the mainloop function argument to the desired one. Then, in the main loop, change the iterated range to the desired one together with the divisor for the var.

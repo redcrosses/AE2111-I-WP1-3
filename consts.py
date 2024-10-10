@@ -2,7 +2,7 @@ import numpy as np
 inputs = 91
 
 max_to_mass = 265625 #kg
-aspect_ratio = 10
+aspect_ratio = 8.02
 
 approach_speed = 78 
 landing_massfraction = 0.79
@@ -34,22 +34,23 @@ climbgradient_gradient = [3.2, 0 , 0, 1.2, 2.1]
 climbgradient_oswaldfactor = [0.867622569, 0.828622569, 0.828622569, 0.789622569, 0.867622569]
 
 ## HLDs and Control Surfaces
-sweep_sixc = 0.445791998
-sweep_quarter = np.radians(31.35) #actually leading edge lmao
+sweep_sixc = np.radians(23.97)
+sweep_quarter = np.radians(28.39) #actually leading edge lmao
 taper_ratio = 0.2*(2-sweep_quarter)
 hld_margin = 1
 
-# aspect_ratio = 8
-
-Clratio = 1.04
-Clmax = 1.797 #1.797 gives imaginary values for aileron position
+Clratio =  0.8  #1.04
+Clmax = 1.797
 CLmax_wingclean = Clratio * Clmax
-clmax_landing = 2.9 #CL design or CLmax,extended
+clmax_landing = 2.6 #C_L design
 
-c_ratio = 1.3 #<- at 1.3 the aileron has no space, so we need a different HLD? #Fowler flap ratio = 1.3
-delta_clmax = 1.3 * c_ratio
+delta_c_to_cf = 0.64
+c_ratio_TE = 1+ 0.35 * delta_c_to_cf #single-slotted fowler flap trailing edge
+delta_clmax = 1.3 * c_ratio_TE #single-slotted fowler 
 C_lalpha = 6.7614
-C_d0 = 0.0008 #wing
+c_ratio_LE = 1.1 #slat at the leading edge
+cl_leadingedge = 0.4*c_ratio_LE
+C_d0 = 0.0008 #wing 
 
 P = np.radians(20)
 stall_speed = 69.44
