@@ -118,7 +118,8 @@ def mainloop(clmax_landing):
 	print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
 
 	#sweep angle relations
-	sweep_LE = tan(sweep_quarter)
+	sweep_LE = np.tan(sweep_quarter) + 0.25 * (2*chord_root)/(span)*(1-taper_ratio)
+	sweep_sixc = np.tan(sweep_LE) - 0.6 * (2*chord_root)/(span)*(1-taper_ratio)
 	
 	#HLD and Control surfaces placement
 	delta_CLmax =  clmax_landing - cl_leadingedge -  CLmax_wingclean
@@ -151,7 +152,7 @@ def mainloop(clmax_landing):
 
 results = []
 SARs = []
-for iterator in range(2670,2671,1): #iterating the design
+for iterator in range(2620,2621,1): #iterating the design
 	var = iterator/1000
 	run = mainloop(var)
 	SARs.append(run[0])

@@ -34,7 +34,6 @@ climbgradient_gradient = [3.2, 0 , 0, 1.2, 2.1]
 climbgradient_oswaldfactor = [0.867622569, 0.828622569, 0.828622569, 0.789622569, 0.867622569]
 
 ## HLDs and Control Surfaces
-sweep_sixc = np.radians(23.97)
 sweep_quarter = np.radians(28.39) #actually leading edge lmao
 taper_ratio = 0.2*(2-sweep_quarter)
 hld_margin = 1
