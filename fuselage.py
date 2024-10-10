@@ -27,7 +27,7 @@ def fuselage(req_vol_fuel):
 
     headroom = legroom - seat
 
-    print("\033[1m\033[4m Cross section dimentions [m] \033[0m")
+    print("\n\033[1m\033[4m Cross section dimentions [m] \033[0m")
 
     print("# of Passenger:", passenger_nr, "[-]")
     print("Seat width:", seat, "[m]")
@@ -146,12 +146,8 @@ def fuselage(req_vol_fuel):
     print("r_chin:", r_chin, "[m]")
     print("S_wfus:", S_wfus)
 
-    print()
     print(fuel_area*(l_fus-l_cyl)*0.5)
     return S_wfus
-
-fuselage(83.1)
-
 
 
 

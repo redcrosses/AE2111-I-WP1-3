@@ -1,5 +1,6 @@
 import numpy as np
 from consts import *
+from fuselage import *
 import math
 import matplotlib.pyplot as plt
 from intersect import intersection
@@ -84,6 +85,12 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.plot(x,y, 'ro-')
 	plt.gca().set_aspect('equal', 'box')
 	plt.show()
+
+def find_cg():
+    return
+
+def empennage_size():
+    return 
 
 def mainloop(clmax_landing):
 	x_const = [100*i for i in range(0,91)]
@@ -171,4 +178,10 @@ for i in range(len(optimal)):
 print("Diff:",optimal[3]/2 - optimal[9])
 planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
 
+#new drag estimation (fast estimation)
+S_wwing = 1.07*2*optimal[2]
+S_wHT = 1.05 * 2 * 1
+S_wVT = 1.05 * 2 * 1
+S_wfuselage = fuselage(83.1)
+C_d0new = 1.15 * (1/optimal[2] * (S_wfuselage * 0.08 + S_wwing * 0.007 + S_wHT * 0.008 + S_wVT * 0.008))
 #to iterate a different parameter, try to change the mainloop function argument to the desired one. Then, in the main loop, change the iterated range to the desired one together with the divisor for the var.
