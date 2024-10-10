@@ -142,6 +142,7 @@ print("l_fus:", l_fus, "[m]")
 print("fuel_area:", fuel_area, "[m^2]")
 print("new_fuel_vol:", new_fuel_vol, "[m^3]")
 print("r_chin:", r_chin, "[m]")
+print("S_wfus:", S_wfus)
 
 print()
 print(fuel_area*(l_fus-l_cyl)*0.5)
