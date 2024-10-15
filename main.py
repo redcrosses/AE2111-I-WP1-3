@@ -8,20 +8,20 @@ import inspect
 
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
 #class I weight estimation
-def Class_1_est(Liftoverdrag,h_CR,V_CR,eff_eng,eff_prop,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
+def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
     # energy fuel is like the weird 41sth/kw or idk
 	#t_E is the Loiter time in emergencies
     g=9.81
-    R_lost = 1/0.7 * (Liftoverdrag) * (h_CR + (V_CR**2)/(2*g)) # lost range via : LIft/Drag , height of cruise, velocity cruise
-    R_eq = (R_nom + R_lost)(1+f_con)+1.2 
+    R_lost = 1/0.7 * (Liftoverdrag) * (h_CR + (V_CR**2)/(2*g)) /1000 # lost range via : LIft/Drag , height of cruise, velocity cruise
+    R_eq = (R_nom + R_lost)*(1+f_con)+1.2 
     R_div + t_E * V_CR # nominal and lost range plus fraction trip fuel for contingency
-    m_f = 1- np.exp((-1* R_eq * g)/(eff_eng * eff_prop * energy_fuel) * 1/Liftoverdrag)
-
+    m_f = 1- np.exp((-R_eq * g * 1000)/(jet_eff * energy_fuel * liftoverdrag))
     M_MTO = M_pl /(1-(m_OE)-(m_f))  # m_OE taken from reference or hallucinated
     M_f = m_f * M_MTO
     M_OE= m_OE * M_MTO
-    
-    return(M_OE, M_f, M_MTO) #in kilos small m is mass fraction, big M is acutal mass
+    print(R_lost, R_eq, R_div, m_f)
+    print("Operating empty: {:f}, \nFuel: {:f}, \nMax TO {:f}, \nFuel mass fraction: {:f}".format(M_OE, M_f, M_MTO, m_f))
+    return(M_OE, M_f, M_MTO, m_f) #in kilos small m is mass fraction, big M is acutal mass
 
 def min_speed_list(clmax_landing):
 	landing_airdensity = 101325/(287*( landing_temp_diff+288.15))
@@ -86,7 +86,7 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.gca().set_aspect('equal', 'box')
 	plt.show()
 
-def find_cg(fuselage_length, nose_cone_length, cabin_length):
+def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
     #LEMAC calculation
     xc_oew = 0.25
     M_empennage = 0.017
@@ -109,33 +109,9 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length):
     
     #CG location
     m_Payload = 18960/max_to_mass
-    cg_matrix = np.array([[m_OEW, m_Payload, m_fuel][X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
-    
-def find_cg(fuselage_length, nose_cone_length, cabin_length):
-    #LEMAC calculation
-    xc_oew = 0.25
-    M_empennage = 0.017
-    M_fuselage = 0.101
-    M_equipment = 0.089
-    M_wing = 0.122
-    M_Nacelle = 0.0056
-    M_Prop = 0.0225
-    fuselage_group = np.array([[M_empennage, M_fuselage, M_equipment],[0.9*fuselage_length, 0.4*fuselage_length, 0.4*fuselage_length]])
-    wing_group = np.array([[M_wing, M_Nacelle, M_Prop],[0.4*MAC, -3, -3]])
-    fus_sum = fuselage_group.prod(axis=0).sum()
-    wing_sum = wing_group.prod(axis=0).sum()
-    M_fus_sum = fuselage_group[0].sum()
-    M_wing_sum = wing_group[0].sum()
-    fus_pos = fus_sum/M_fus_sum
-    wing_pos = wing_sum/M_wing_sum
-    print(fus_pos, wing_pos)
-    X_LEMAC = fus_pos + MAC*(wing_pos/MAC * M_wing_sum/M_fus_sum - xc_oew*(1+M_wing_sum/M_fus_sum))
-    X_TEMAC = X_LEMAC + MAC
-    
-    #CG location
-    m_Payload = 18960/max_to_mass
-    cg_matrix = np.array([[m_OEW, m_Payload, m_fuel][X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
-    
+    cg_matrix = np.array([[m_OE, m_Payload, m_fuel],[X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
+    moments = cg_matrix.prod(axis=0)
+    print(moments)
     return
 
 def empennage_size(l_fus, cg_aft, l_MAC, S_wet, b):
@@ -152,14 +128,9 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wet, b):
 
 parasite_drag = 0.0075
 c_d0initial = 0.0168
-initial_oswald = 1/(np.pi()*aspect_ratio*parasite_drag + (1/0.97))
-liftoverdrag = 0.5*pow((np.pi()*aspect_ratio*initial_oswald)/c_d0initial, 0.5)
-M_OE, M_f, M_MTO = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, )
-parasite_drag = 0.0075
-c_d0initial = 0.0168
-initial_oswald = 1/(np.pi()*aspect_ratio*parasite_drag + (1/0.97))
-liftoverdrag = 0.5*pow((np.pi()*aspect_ratio*initial_oswald)/c_d0initial, 0.5)
-M_OE, M_f, M_MTO = Class_1_est(liftoverdrag, cruise_altitude)
+initial_oswald = 1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
+liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0initial)
+M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl)
 
 def mainloop(clmax_landing):
 	x_const = [100*i for i in range(0,91)]
@@ -218,7 +189,7 @@ def mainloop(clmax_landing):
 	c_Drag =  C_D0_cruise + np.power( c_L_cruise,2)/(np.pi*aspect_ratio*cruise_oswald_efficiency)
 	Drag = c_Drag * 0.5*cruise_density*np.power(cruise_velocity,2) * S
 
-	SAR =  specific_fuel_energy* jet_efficiency/(Drag)
+	SAR =  specific_fuel_energy* efficiency_tf/(Drag)
 	frame = inspect.currentframe()
 	name,_,_,argvalue = inspect.getargvalues(frame)
 	iteratedvalue = argvalue[name[0]]
@@ -253,7 +224,7 @@ MAC = 2/3 * optimal[4] * ((1+taper_ratio+taper_ratio**2)/(1+taper_ratio))
 #finding the fuselage dimensions
 fuselage_calc = fuselage(83.1) #output: wetted surface area, fuselage length, cabin length, nose cone length
 # print(fuselage_calc)
-find_cg(float(fuselage_calc[1]), fuselage_calc[3], fuselage_calc[2])
+find_cg(float(fuselage_calc[1]), fuselage_calc[3], fuselage_calc[2],m_f)
 #new drag estimation (fast estimation)
 S_wwing = 1.07*2*optimal[2]
 S_wHT = 1.05 * 2 * 1

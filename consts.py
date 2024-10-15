@@ -1,6 +1,13 @@
 import numpy as np
 inputs = 91
 
+R_nominal = 11716 #[km]
+R_diversion = 250 #[km]
+t_E = 45 #[min]
+f_con = 0
+m_OE = 0.65
+M_pl = 8500 #design payload! [kg]
+
 max_to_mass = 265625 #kg
 aspect_ratio = 8.02
 
@@ -59,8 +66,10 @@ dalpha = 0.4581
 tau = 0.4
 
 specific_fuel_energy = 44e6
-jet_efficiency = 0.75
+efficiency_tf = 0.75
 
+jet_eff = ((cruise_speed)/(22*np.pow(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
+# print(jet_eff)
 # tsfc = 22*np.power(bypass_ratio,-0.19)*1E-6 #from adsee estimation for turbofans?? or how else do you do it lol
 # print(tsfc)
 c_L_cruise = 0.52924 #from the cruise angle of attack section
