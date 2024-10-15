@@ -79,51 +79,65 @@ def find_design_point(target_pos, lines_arr):
 	return intersections[yvals.index(max(yvals))] #return the point in the intersections list that has the maximum y-value of the intersection.
 
 def planform_print(span, root_c, tip_c,sweep_quart):
-	plt.clf()
+	plt.subplot(1,3,2)
+	plt.title("Wing Planform")
 	x = [0,0,span, span,0]
 	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
 	plt.plot(x,y, 'ro-')
 	plt.gca().set_aspect('equal', 'box')
-	plt.show()
 
 def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
-    #LEMAC calculation
-    xc_oew = 0.25
-    M_empennage = 0.017
-    M_fuselage = 0.101
-    M_equipment = 0.089
-    M_wing = 0.122
-    M_Nacelle = 0.0056
-    M_Prop = 0.0225
-    fuselage_group = np.array([[M_empennage, M_fuselage, M_equipment],[0.9*fuselage_length, 0.4*fuselage_length, 0.4*fuselage_length]])
-    wing_group = np.array([[M_wing, M_Nacelle, M_Prop],[0.4*MAC, -3, -3]])
-    fus_sum = fuselage_group.prod(axis=0).sum()
-    wing_sum = wing_group.prod(axis=0).sum()
-    M_fus_sum = fuselage_group[0].sum()
-    M_wing_sum = wing_group[0].sum()
-    fus_pos = fus_sum/M_fus_sum
-    wing_pos = wing_sum/M_wing_sum
-    print(fus_pos, wing_pos)
-    X_LEMAC = fus_pos + MAC*(wing_pos/MAC * M_wing_sum/M_fus_sum - xc_oew*(1+M_wing_sum/M_fus_sum))
-    X_TEMAC = X_LEMAC + MAC
-    
-    #CG location
-    m_Payload = 18960/max_to_mass
-    cg_matrix = np.array([[m_OE, m_Payload, m_fuel],[X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
-    moments = cg_matrix.prod(axis=0)
-    print(moments)
-    return
+	#LEMAC calculation
+	xc_oew = 0.25
+	M_empennage = 0.017
+	M_fuselage = 0.101
+	M_equipment = 0.089
+	M_wing = 0.122
+	M_Nacelle = 0.0056
+	M_Prop = 0.0225
+	fuselage_group = np.array([[M_empennage, M_fuselage, M_equipment],[0.9*fuselage_length, 0.4*fuselage_length, 0.4*fuselage_length]])
+	wing_group = np.array([[M_wing, M_Nacelle, M_Prop],[0.4*MAC, -3, -3]])
+	fus_sum = fuselage_group.prod(axis=0).sum()
+	wing_sum = wing_group.prod(axis=0).sum()
+	M_fus_sum = fuselage_group[0].sum()
+	M_wing_sum = wing_group[0].sum()
+	fus_pos = fus_sum/M_fus_sum
+	wing_pos = wing_sum/M_wing_sum
+	print(fus_pos, wing_pos)
+	X_LEMAC = fus_pos + MAC*(wing_pos/MAC * M_wing_sum/M_fus_sum - xc_oew*(1+M_wing_sum/M_fus_sum))
+	X_TEMAC = X_LEMAC + MAC
 
-def empennage_size(l_fus, cg_aft, l_MAC, S_wet, b):
+	#CG location
+	m_Payload = 18960/max_to_mass
+	cg_matrix = np.array([[m_OE, m_Payload, m_fuel],[X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
+	moments = cg_matrix.prod(axis=0)
+	print(moments)
+	cg_positions = np.array([[cg_matrix[1][0], cg_matrix[0][0]],
+				 [(moments[0]+moments[1])/(cg_matrix[0][0]+cg_matrix[0][1]),(cg_matrix[0][0]+cg_matrix[0][1])],
+				 [(moments[0]+moments[1]+moments[2])/(cg_matrix[0][0]+cg_matrix[0][1]+cg_matrix[0][2]),(cg_matrix[0][0]+cg_matrix[0][1]+cg_matrix[0][2])],
+				 [(moments[0]+moments[2])/(cg_matrix[0][0]+cg_matrix[0][2]),(cg_matrix[0][0]+cg_matrix[0][2])]]) #OEW, WOE+WP, WOE+WP+WF, WOE+WF
+	# print(cg_positions)
+	#plotting the cgs
+	a,b = zip(*np.vstack([cg_positions,[cg_matrix[1][0], cg_matrix[0][0]]])) #added the starting point for proper plotting
+	plt.subplot(1,3,3)
+	plt.title("Cg Positions")
+	plt.plot(a,b, 'bo-')
+	plt.plot((X_LEMAC, X_TEMAC),(1,1),'ro-')
+	plt.ylim(0,1.1)
+	print("\nCG locations, mass fractions: \nOEW: {0} \nWOE+WP: {1} \nWOE+WP+WF: {2} \nWOE+WF: {3} ".format(cg_positions[0],cg_positions[1],cg_positions[2],cg_positions[3] ))
+	return cg_positions
+
+def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	htail_aero_centre_location = l_fus - 4
 	htail_moment_arm_cg_aft = htail_aero_centre_location - cg_aft 
 	htail_c_v = 0.95
-	htail_area = (htail_c_v * l_MAC * S_wet) / (htail_moment_arm_cg_aft)
+	htail_area = (htail_c_v * l_MAC * S_wing) / (htail_moment_arm_cg_aft)
 
 	vtail_aero_centre_location = htail_aero_centre_location - 2
 	vtail_moment_arm_cg_aft = vtail_aero_centre_location - cg_aft
 	vtail_c_v = 0.066
-	vtail_area = (vtail_c_v * b * S_wet) / (vtail_moment_arm_cg_aft)
+	vtail_area = (vtail_c_v * b * S_wing) / (vtail_moment_arm_cg_aft)
+	print("\nEmpennage:\nHor.Tail Location: %.5f [m] \nHor.Tail Area: %.5f [m^2] \nVer.Tail Location: %.5f [m] \nVer.Tail Area: %.5f [m^2]" % (htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area))
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
 parasite_drag = 0.0075
@@ -146,13 +160,16 @@ def mainloop(clmax_landing):
 	
 	design_point = find_design_point(0,lines) #make minimum speed line the target line to intersect with
 
-	# for i in range(len(lines)): #plotting all lines
-	# 	plt.plot(lines[i][0], lines[i][1], label = labels[i])
-	# plt.plot(design_point[0], design_point[1],"ro")
-	# plt.ylim(0,1)
-	# plt.legend()
-	# plt.grid()
-	# plt.show() #uncomment to show the matching diagram
+	plt.subplot(1,3,1)
+	plt.title("Matching Diagram")
+	for i in range(len(lines)): #plotting all lines
+		plt.plot(lines[i][0], lines[i][1], label = labels[i])
+	plt.plot(design_point[0], design_point[1],"ro")
+	plt.gca().set_aspect('auto','box')
+	plt.ylim(0,1)
+	plt.legend()
+	plt.grid()
+	
 
 	##HLDs and Control surfaces 
 	S =  max_to_mass*9.81 / float(design_point[0][0]) #<- column and row position avoids deprecation warning
@@ -216,19 +233,22 @@ labels = [["Optimal SAR:",'Iterated value:', 'S:', 'Span:', 'Chord_root:', 'Chor
 # for i in range(len(optimal)):
 # 	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
 # print("Diff:",optimal[3]/2 - optimal[9])
-# planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
+planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
 
 #mean aerodynamic chord
 MAC = 2/3 * optimal[4] * ((1+taper_ratio+taper_ratio**2)/(1+taper_ratio))
 
 #finding the fuselage dimensions
-fuselage_calc = fuselage(83.1) #output: wetted surface area, fuselage length, cabin length, nose cone length
-# print(fuselage_calc)
-find_cg(float(fuselage_calc[1]), fuselage_calc[3], fuselage_calc[2],m_f)
+S_wfuselage, l_fuselage, l_cabin, l_ncone = fuselage(83.1) #output: fuselage wetted surface area, fuselage length, cabin length, nose cone length
+cg_positions = find_cg(float(l_fuselage), l_ncone, l_cabin,m_f)
+cg_aft = np.max(cg_positions[:,0])
+x_htail, htail_area, x_vtail, vtail_area = empennage_size(l_fuselage, cg_aft, MAC,optimal[2],optimal[3])
+
 #new drag estimation (fast estimation)
 S_wwing = 1.07*2*optimal[2]
-S_wHT = 1.05 * 2 * 1
-S_wVT = 1.05 * 2 * 1
-S_wfuselage = fuselage_calc[0]
-C_d0new = 1.15 * (1/optimal[2] * (S_wfuselage * 0.08 + S_wwing * 0.007 + S_wHT * 0.008 + S_wVT * 0.008))
-#to iterate a different parameter, try to change the mainloop function argument to the desired one. Then, in the main loop, change the iterated range to the desired one together with the divisor for the var.
+S_wHT = 1.05 * 2 * htail_area
+S_wVT = 1.05 * 2 * vtail_area
+c_d0new = 1.15 * (1/optimal[2] * (S_wfuselage * 0.08 + S_wwing * 0.007 + S_wHT * 0.008 + S_wVT * 0.008))
+print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0initial, c_d0new))
+
+# plt.show() #uncomment to show dashboard

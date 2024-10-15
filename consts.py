@@ -68,7 +68,7 @@ tau = 0.4
 specific_fuel_energy = 44e6
 efficiency_tf = 0.75
 
-jet_eff = ((cruise_speed)/(22*np.pow(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
+jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
 # print(jet_eff)
 # tsfc = 22*np.power(bypass_ratio,-0.19)*1E-6 #from adsee estimation for turbofans?? or how else do you do it lol
 # print(tsfc)
