@@ -8,14 +8,14 @@ import inspect
 
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
 #class I weight estimation
-def Class_1_est(Lift,Drag,h_CR,V_CR,eff_eng,eff_prop,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
+def Class_1_est(Liftoverdrag,h_CR,V_CR,eff_eng,eff_prop,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
     # energy fuel is like the weird 41sth/kw or idk
 	#t_E is the Loiter time in emergencies
     g=9.81
-    R_lost = 1/0.7 * (Lift/Drag) * (h_CR + (V_CR**2)/(2*g)) # lost range via : LIft/Drag , height of cruise, velocity cruise
+    R_lost = 1/0.7 * (Liftoverdrag) * (h_CR + (V_CR**2)/(2*g)) # lost range via : LIft/Drag , height of cruise, velocity cruise
     R_eq = (R_nom + R_lost)(1+f_con)+1.2 
     R_div + t_E * V_CR # nominal and lost range plus fraction trip fuel for contingency
-    m_f = 1- np.exp((-1* R_eq * Drag * g)/(eff_eng * eff_prop * energy_fuel * Lift))
+    m_f = 1- np.exp((-1* R_eq * g)/(eff_eng * eff_prop * energy_fuel) * 1/Liftoverdrag)
 
     M_MTO = M_pl /(1-(m_OE)-(m_f))  # m_OE taken from reference or hallucinated
     M_f = m_f * M_MTO
@@ -86,7 +86,31 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.gca().set_aspect('equal', 'box')
 	plt.show()
 
-def find_cg():
+def find_cg(fuselage_length, nose_cone_length, cabin_length):
+    #LEMAC calculation
+    xc_oew = 0.25
+    M_empennage = 0.017
+    M_fuselage = 0.101
+    M_equipment = 0.089
+    M_wing = 0.122
+    M_Nacelle = 0.0056
+    M_Prop = 0.0225
+    fuselage_group = np.array([[M_empennage, M_fuselage, M_equipment],[0.9*fuselage_length, 0.4*fuselage_length, 0.4*fuselage_length]])
+    wing_group = np.array([[M_wing, M_Nacelle, M_Prop],[0.4*MAC, -3, -3]])
+    fus_sum = fuselage_group.prod(axis=0).sum()
+    wing_sum = wing_group.prod(axis=0).sum()
+    M_fus_sum = fuselage_group[0].sum()
+    M_wing_sum = wing_group[0].sum()
+    fus_pos = fus_sum/M_fus_sum
+    wing_pos = wing_sum/M_wing_sum
+    print(fus_pos, wing_pos)
+    X_LEMAC = fus_pos + MAC*(wing_pos/MAC * M_wing_sum/M_fus_sum - xc_oew*(1+M_wing_sum/M_fus_sum))
+    X_TEMAC = X_LEMAC + MAC
+    
+    #CG location
+    m_Payload = 18960/max_to_mass
+    cg_matrix = np.array([[m_OEW, m_Payload, m_fuel][X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
+    
     return
 
 def empennage_size(l_fus, cg_aft, l_MAC, S_wet, b):
@@ -101,6 +125,13 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wet, b):
 	vtail_area = (vtail_c_v * b * S_wet) / (vtail_moment_arm_cg_aft)
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
+def empennage_size():
+    return 
+parasite_drag = 0.0075
+c_d0initial = 0.0168
+initial_oswald = 1/(np.pi()*aspect_ratio*parasite_drag + (1/0.97))
+liftoverdrag = 0.5*pow((np.pi()*aspect_ratio*initial_oswald)/c_d0initial, 0.5)
+M_OE, M_f, M_MTO = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, )
 
 def mainloop(clmax_landing):
 	x_const = [100*i for i in range(0,91)]
@@ -180,18 +211,25 @@ optimalSAR = max(SARs) #optimal is found when the SAR is maximum in the iterated
 optimal = results[SARs.index(optimalSAR)] #print the optimal results based on optimal aspect ratio
 optimal.insert(0,optimalSAR)
 labels = [["Optimal SAR:",'Iterated value:', 'S:', 'Span:', 'Chord_root:', 'Chord_tip:', 'S_wf:','y_1 (HLD):', 'y_2 (HLD):', 'b_2 (Aileron):', 'Maximum Thrust:'],["[m/kg]", "","[m^2]", "[m]","[m]","[m]","[m^2]","[m]","[m]","[m]",'[kN]']]
-print("\n###{:^36}###".format("RESULTS"))
+# print("\n###{:^36}###".format("RESULTS"))
 
-print("\nIterated variable: {:>18}".format(mainloop.__code__.co_varnames[0]))
-for i in range(len(optimal)):
-	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
-print("Diff:",optimal[3]/2 - optimal[9])
-planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
+# print("\nIterated variable: {:>18}".format(mainloop.__code__.co_varnames[0]))
+# for i in range(len(optimal)):
+# 	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
+# print("Diff:",optimal[3]/2 - optimal[9])
+# planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
 
+#mean aerodynamic chord
+MAC = 2/3 * optimal[4] * ((1+taper_ratio+taper_ratio**2)/(1+taper_ratio))
+
+#finding the fuselage dimensions
+fuselage_calc = fuselage(83.1) #output: wetted surface area, fuselage length, cabin length, nose cone length
+# print(fuselage_calc)
+find_cg(float(fuselage_calc[1]), fuselage_calc[3], fuselage_calc[2])
 #new drag estimation (fast estimation)
 S_wwing = 1.07*2*optimal[2]
 S_wHT = 1.05 * 2 * 1
 S_wVT = 1.05 * 2 * 1
-S_wfuselage = fuselage(83.1)
+S_wfuselage = fuselage_calc[0]
 C_d0new = 1.15 * (1/optimal[2] * (S_wfuselage * 0.08 + S_wwing * 0.007 + S_wHT * 0.008 + S_wVT * 0.008))
 #to iterate a different parameter, try to change the mainloop function argument to the desired one. Then, in the main loop, change the iterated range to the desired one together with the divisor for the var.
