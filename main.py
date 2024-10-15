@@ -89,8 +89,18 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 def find_cg():
     return
 
-def empennage_size():
-    return 
+def empennage_size(l_fus, cg_aft, l_MAC, S_wet, b):
+	htail_aero_centre_location = l_fus - 4
+	htail_moment_arm_cg_aft = htail_aero_centre_location - cg_aft 
+	htail_c_v = 0.95
+	htail_area = (htail_c_v * l_MAC * S_wet) / (htail_moment_arm_cg_aft)
+
+	vtail_aero_centre_location = htail_aero_centre_location - 2
+	vtail_moment_arm_cg_aft = vtail_aero_centre_location - cg_aft
+	vtail_c_v = 0.066
+	vtail_area = (vtail_c_v * b * S_wet) / (vtail_moment_arm_cg_aft)
+	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
+
 
 def mainloop(clmax_landing):
 	x_const = [100*i for i in range(0,91)]
