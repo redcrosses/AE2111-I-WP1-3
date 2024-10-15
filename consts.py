@@ -10,7 +10,10 @@ landing_temp_diff = 15
 landing_fieldlengthreq = 1981.2
 cruise_massfraction = 0.95
 cruise_altitude = 9449.8
+ref_altitude = 100
+cruise_temp = 288.15-0.0065*(cruise_altitude-ref_altitude)
 cruise_minmach = 0.85
+cruise_speed = 0.85 * np.sqrt(1.4*287*cruise_temp)
 
 to_massfraction = 0.85
 to_altitude = 7400
@@ -23,8 +26,6 @@ to_pressure = 95457.84253
 bypass_ratio = 10
 wetted_ratio = 6
 friction_coefficient = 0.0028
-ref_altitude = 100
-cruise_temp = 288.15-0.0065*(cruise_altitude-ref_altitude)
 parasite_drag = 0.0075
 span_efficiency = 0.97
 

@@ -147,7 +147,7 @@ def fuselage(req_vol_fuel):
     print("S_wfus:", S_wfus)
 
     print(fuel_area*(l_fus-l_cyl)*0.5)
-    return S_wfus
+    return S_wfus, l_fus, l_cabin, l_nc
 
 
 

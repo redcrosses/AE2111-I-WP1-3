@@ -131,7 +131,11 @@ parasite_drag = 0.0075
 c_d0initial = 0.0168
 initial_oswald = 1/(np.pi()*aspect_ratio*parasite_drag + (1/0.97))
 liftoverdrag = 0.5*pow((np.pi()*aspect_ratio*initial_oswald)/c_d0initial, 0.5)
+<<<<<<< Updated upstream
 M_OE, M_f, M_MTO = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, )
+=======
+M_OE, M_f, M_MTO = Class_1_est(liftoverdrag, cruise_altitude)
+>>>>>>> Stashed changes
 
 def mainloop(clmax_landing):
 	x_const = [100*i for i in range(0,91)]
