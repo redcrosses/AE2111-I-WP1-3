@@ -111,6 +111,31 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length):
     m_Payload = 18960/max_to_mass
     cg_matrix = np.array([[m_OEW, m_Payload, m_fuel][X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
     
+def find_cg(fuselage_length, nose_cone_length, cabin_length):
+    #LEMAC calculation
+    xc_oew = 0.25
+    M_empennage = 0.017
+    M_fuselage = 0.101
+    M_equipment = 0.089
+    M_wing = 0.122
+    M_Nacelle = 0.0056
+    M_Prop = 0.0225
+    fuselage_group = np.array([[M_empennage, M_fuselage, M_equipment],[0.9*fuselage_length, 0.4*fuselage_length, 0.4*fuselage_length]])
+    wing_group = np.array([[M_wing, M_Nacelle, M_Prop],[0.4*MAC, -3, -3]])
+    fus_sum = fuselage_group.prod(axis=0).sum()
+    wing_sum = wing_group.prod(axis=0).sum()
+    M_fus_sum = fuselage_group[0].sum()
+    M_wing_sum = wing_group[0].sum()
+    fus_pos = fus_sum/M_fus_sum
+    wing_pos = wing_sum/M_wing_sum
+    print(fus_pos, wing_pos)
+    X_LEMAC = fus_pos + MAC*(wing_pos/MAC * M_wing_sum/M_fus_sum - xc_oew*(1+M_wing_sum/M_fus_sum))
+    X_TEMAC = X_LEMAC + MAC
+    
+    #CG location
+    m_Payload = 18960/max_to_mass
+    cg_matrix = np.array([[m_OEW, m_Payload, m_fuel][X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
+    
     return
 
 def empennage_size(l_fus, cg_aft, l_MAC, S_wet, b):
@@ -125,17 +150,16 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wet, b):
 	vtail_area = (vtail_c_v * b * S_wet) / (vtail_moment_arm_cg_aft)
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
-def empennage_size():
-    return 
 parasite_drag = 0.0075
 c_d0initial = 0.0168
 initial_oswald = 1/(np.pi()*aspect_ratio*parasite_drag + (1/0.97))
 liftoverdrag = 0.5*pow((np.pi()*aspect_ratio*initial_oswald)/c_d0initial, 0.5)
-<<<<<<< Updated upstream
 M_OE, M_f, M_MTO = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, )
-=======
+parasite_drag = 0.0075
+c_d0initial = 0.0168
+initial_oswald = 1/(np.pi()*aspect_ratio*parasite_drag + (1/0.97))
+liftoverdrag = 0.5*pow((np.pi()*aspect_ratio*initial_oswald)/c_d0initial, 0.5)
 M_OE, M_f, M_MTO = Class_1_est(liftoverdrag, cruise_altitude)
->>>>>>> Stashed changes
 
 def mainloop(clmax_landing):
 	x_const = [100*i for i in range(0,91)]
