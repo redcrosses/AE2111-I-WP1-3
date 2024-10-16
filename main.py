@@ -22,7 +22,7 @@ def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_c
     M_OE= m_OE * M_MTO
     print(R_lost, R_eq, R_div, m_f)
     print("\n\033[1m\033[4m Class I Weight Estimation \033[0m")
-    print("Operating empty: {:f}, \nFuel: {:f}, \nMax TO {:f}, \nFuel mass fraction: {:f}".format(M_OE, M_f, M_MTO, m_f))
+    print("{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}".format("Operating empty:", M_OE, "[kg]", "Fuel:", M_f, "[kg]", "Max TO:", M_MTO, "[kg]", "Fuel mass fraction:", m_f, "[kg]"))
     return(M_OE, M_f, M_MTO, m_f) #in kilos small m is mass fraction, big M is acutal mass
 
 def min_speed_list(clmax_landing):
@@ -119,7 +119,11 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
 	plt.plot((X_LEMAC, X_TEMAC),(1,1),'ro-')
 	plt.ylim(0,1.1)
 	print("\n\033[1m\033[4m Cg Locations & Mass Fractions \033[0m")
-	print("OEW: {0} \nWOE+WP: {1} \nWOE+WP+WF: {2} \nWOE+WF: {3} ".format(cg_positions[0],cg_positions[1],cg_positions[2],cg_positions[3] ))
+	print("{:24} {:16}\n{:24} {:16}\n{:24} {:16}\n{:24} {:16}".format(
+    "OEW:", ' [m], '.join(["{:.5f}".format(round(x, 5)) for x in cg_positions[0]]), 
+    "WOE+WP:", ' [m], '.join(["{:.5f}".format(round(x, 5)) for x in cg_positions[1]]), 
+    "WOE+WP+WF:", ' [m], '.join(["{:.5f}".format(round(x, 5)) for x in cg_positions[2]]), 
+    "WOE+WF:", ' [m], '.join(["{:.5f}".format(round(x, 5)) for x in cg_positions[3]]))) #thanks gpt
 	return cg_positions
 
 def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
@@ -133,7 +137,7 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	vtail_c_v = 0.066
 	vtail_area = (vtail_c_v * b * S_wing) / (vtail_moment_arm_cg_aft)
 	print("\n\033[1m\033[4m Empennage \033[0m")
-	print("Hor.Tail Location: %.5f [m] \nHor.Tail Area: %.5f [m^2] \nVer.Tail Location: %.5f [m] \nVer.Tail Area: %.5f [m^2]" % (htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area))
+	print("{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}".format("Hor.Tail Location:", htail_aero_centre_location, "[m]", "Hor.Tail Area:", htail_area, "[m^2]", "Ver.Tail Location:", vtail_aero_centre_location, "[m]", "Ver.Tail Area:", vtail_area, "[m^2]"))
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
 def planform_print(span, root_c, tip_c,sweep_quart):
@@ -188,9 +192,11 @@ def optimisation(clmax_landing, max_to_mass):
 	sweep_sixc = np.tan(sweep_LE) - 0.6 * (2*chord_root)/(span)*(1-taper_ratio)
 	sweep_half = np.tan(sweep_LE) - 0.5 * (2*chord_root)/(span)*(1-taper_ratio)
 	#will need out of loop and this is easier
-	global t_r
+	global t_r, cruise_oswald_efficiency
 	t_r = chord_root*t_cratio
- 
+	cruise_oswald_efficiency = 4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1
+
+		
 	#HLD and Control surfaces placement
 	delta_CLmax =  clmax_landing - cl_leadingedge -  CLmax_wingclean
 
@@ -200,7 +206,7 @@ def optimisation(clmax_landing, max_to_mass):
 	y_2 = np.min(np.roots([-(chord_root - chord_tip)/(span), chord_root, ((chord_root - chord_tip)/(span) * np.power(y_1,2) - chord_root*y_1 - S_wf/2)])) +  hld_margin
 	
 	inter = 2* (chord_root - chord_tip)/span
-	C_lp = -4 * ( C_lalpha +  C_d0)/(S * np.power(span,2)) * ((chord_root/3 * np.power(span/2,3) - inter * np.power(span/2,4)/4))
+	C_lp = -4 * ( C_lalpha +  C_d0wing)/(S * np.power(span,2)) * ((chord_root/3 * np.power(span/2,3) - inter * np.power(span/2,4)/4))
 
 	C_lda = -( P * C_lp)/( dalpha) * (span/(2* stall_speed))
 	b_2 = np.roots([2/3 * (chord_root - chord_tip)/span, -chord_root/2, 0, chord_root/2 * np.power(y_2, 2) - 2/3 * (chord_root - chord_tip)/span * np.power(y_2, 3) + (C_lda*S*span)/(2* C_lalpha* tau)])
@@ -208,7 +214,6 @@ def optimisation(clmax_landing, max_to_mass):
 
 	cruise_density = (101325*(1+(-0.0065* cruise_altitude/288.15))**(-9.81/(-0.0065*287))) /(287* cruise_temp)
 	cruise_velocity =  cruise_minmach*np.sqrt(1.4* cruise_temp*287)
-	cruise_oswald_efficiency = 4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos( sweep_quarter),0.15) - 3.1
 	c_Drag =  c_d0initial + np.power(c_L_cruise,2)/(np.pi*aspect_ratio*cruise_oswald_efficiency)
 	Drag = c_Drag * 0.5*cruise_density*np.power(cruise_velocity,2) * S
 
@@ -228,6 +233,8 @@ def optimisation(clmax_landing, max_to_mass):
 
 ######################################################
 #class 1 weight estimation
+initial_oswald = 1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
+liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0initial)
 M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl)
 
 #iterating the design (matching diagram, wing sizing, hld and control surfaces)
@@ -274,12 +281,13 @@ cg_aft = np.max(cg_positions[:,0])
 x_htail, htail_area, x_vtail, vtail_area = empennage_size(l_fuselage, cg_aft, MAC,optimal[2],optimal[3])
 
 #new drag estimation (fast estimation)
-S_wwing = 1.07*2*optimal[2]
+S_wwing = 1.07 * 2 * optimal[2]
 S_wHT = 1.05 * 2 * htail_area
 S_wVT = 1.05 * 2 * vtail_area
 S_wnacelles = 1 #todo
-c_d0new = 1.15 * (1/optimal[2] * (S_wfuselage * 0.08 + S_wwing * 0.007 + S_wnacelles*0.06 + S_wHT * 0.008 + S_wVT * 0.008))
+c_d0new = 1.15 * (1/optimal[2] * (S_wfuselage*0.08 + S_wwing*0.007 + S_wnacelles*0.06 + S_wHT*0.008 + S_wVT * 0.008))
 print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0initial, c_d0new)) #cd0 is wrong; 10x too large
+print("\nOLD e: {0}, NEW e: {1}".format(initial_oswald, cruise_oswald_efficiency))
 
 #Weight estimation
 n_max = 2.5 #max loading factor estimmation

@@ -13,11 +13,9 @@ f_con = 0
 m_OE = 0.65
 M_pl = 8500 #design payload! [kg]
 
-c_d0initial = 0.0168 #from Fred's excel Drag polar section
+c_d0initial = 0.0168#from Fred's excel Drag polar section
 c_L_cruise = 0.52924 #from the cruise angle of attack section
 parasite_drag = 0.0075
-initial_oswald = 1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
-liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0initial)
 
 #matching diagram
 approach_speed = 78 
@@ -69,7 +67,7 @@ delta_clmax = 1.3 * c_ratio_TE #single-slotted fowler
 C_lalpha = 6.7614
 c_ratio_LE = 1.1 #slat at the leading edge
 cl_leadingedge = 0.4*c_ratio_LE
-C_d0 = 0.0008 #wing 
+C_d0wing = 0.0008 #wing 
 
 P = np.radians(20)
 stall_speed = 69.44
