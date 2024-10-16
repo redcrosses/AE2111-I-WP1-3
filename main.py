@@ -6,8 +6,9 @@ import matplotlib.pyplot as plt
 from intersect import intersection
 import inspect
 
+###FUNCTIONS AND CLASSES###
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
-#class I weight estimation
+
 def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
     # energy fuel is like the weird 41sth/kw or idk
 	#t_E is the Loiter time in emergencies
@@ -78,14 +79,6 @@ def find_design_point(target_pos, lines_arr):
 		yvals.append(intrsctn[1])
 	return intersections[yvals.index(max(yvals))] #return the point in the intersections list that has the maximum y-value of the intersection.
 
-def planform_print(span, root_c, tip_c,sweep_quart):
-	plt.subplot(1,3,2)
-	plt.title("Wing Planform")
-	x = [0,0,span, span,0]
-	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
-	plt.plot(x,y, 'ro-')
-	plt.gca().set_aspect('equal', 'box')
-
 def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
 	#LEMAC calculation
 	xc_oew = 0.25
@@ -119,12 +112,13 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
 	# print(cg_positions)
 	#plotting the cgs
 	a,b = zip(*np.vstack([cg_positions,[cg_matrix[1][0], cg_matrix[0][0]]])) #added the starting point for proper plotting
-	plt.subplot(1,3,3)
+	plt.subplot(2,3,3)
 	plt.title("Cg Positions")
 	plt.plot(a,b, 'bo-')
 	plt.plot((X_LEMAC, X_TEMAC),(1,1),'ro-')
 	plt.ylim(0,1.1)
-	print("\nCG locations, mass fractions: \nOEW: {0} \nWOE+WP: {1} \nWOE+WP+WF: {2} \nWOE+WF: {3} ".format(cg_positions[0],cg_positions[1],cg_positions[2],cg_positions[3] ))
+	print("\n\033[1m\033[4m Cg Locations & Mass Fractions \033[0m")
+	print("OEW: {0} \nWOE+WP: {1} \nWOE+WP+WF: {2} \nWOE+WF: {3} ".format(cg_positions[0],cg_positions[1],cg_positions[2],cg_positions[3] ))
 	return cg_positions
 
 def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
@@ -137,17 +131,34 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	vtail_moment_arm_cg_aft = vtail_aero_centre_location - cg_aft
 	vtail_c_v = 0.066
 	vtail_area = (vtail_c_v * b * S_wing) / (vtail_moment_arm_cg_aft)
-	print("\nEmpennage:\nHor.Tail Location: %.5f [m] \nHor.Tail Area: %.5f [m^2] \nVer.Tail Location: %.5f [m] \nVer.Tail Area: %.5f [m^2]" % (htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area))
+	print("\n\033[1m\033[4m Empennage \033[0m")
+	print("Hor.Tail Location: %.5f [m] \nHor.Tail Area: %.5f [m^2] \nVer.Tail Location: %.5f [m] \nVer.Tail Area: %.5f [m^2]" % (htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area))
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
-parasite_drag = 0.0075
-c_d0initial = 0.0168
-initial_oswald = 1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
-liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0initial)
-M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl)
+def planform_print(span, root_c, tip_c,sweep_quart):
+	plt.subplot(2,3,4)
+	plt.title("Wing Planform")
+	x = [0,0,span, span,0]
+	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
+	plt.plot(x,y, 'ro-')
+	plt.gca().set_aspect('equal', 'box')
 
-def mainloop(clmax_landing):
+def matchingdiag_print(lines, labels, design_point):
+	plt.subplot(2,3,1)
+	plt.title("Matching Diagram")
+	for i in range(len(lines)): #plotting all lines
+		plt.plot(lines[i][0], lines[i][1], label = labels[i])
+	plt.plot(design_point[0], design_point[1],"ro")
+	plt.gca().set_aspect('auto','box')
+	plt.ylim(0,1)
+	plt.legend()
+	plt.grid()
+
+
+def mainloop(clmax_landing, max_to_mass):
+    #matching diagram
 	x_const = [100*i for i in range(0,91)]
+	global lines, labels, design_point
 	lines = [([min_speed_list(clmax_landing)]*91, x_const), ([field_length_list(clmax_landing)]*91, x_const),(wing_loading, cruise_speed_list())]
 	labels = ["Minimum speed","Landing Field Length","Cruise speed","Climb Gradient 1","Climb Gradient 2","Climb Gradient 3","Climb Gradient 4","Climb Gradient 5","Takeoff Field Length"]
 	
@@ -159,17 +170,7 @@ def mainloop(clmax_landing):
 	lines.append((wing_loading, to_field_length_list(aspect_ratio)))
 	
 	design_point = find_design_point(0,lines) #make minimum speed line the target line to intersect with
-
-	plt.subplot(1,3,1)
-	plt.title("Matching Diagram")
-	for i in range(len(lines)): #plotting all lines
-		plt.plot(lines[i][0], lines[i][1], label = labels[i])
-	plt.plot(design_point[0], design_point[1],"ro")
-	plt.gca().set_aspect('auto','box')
-	plt.ylim(0,1)
-	plt.legend()
-	plt.grid()
-	
+	thrust_max = float(design_point[1][0])*max_to_mass*9.81 /1000
 
 	##HLDs and Control surfaces 
 	S =  max_to_mass*9.81 / float(design_point[0][0]) #<- column and row position avoids deprecation warning
@@ -181,10 +182,15 @@ def mainloop(clmax_landing):
 	y_1 = 0.10*span/2 #position of the beginning of the HLD; 15% of the half-span
 	print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
 
-	#sweep angle relations
+	#sweep angle relations (probably should be a function lol)
+	global sweep_LE, sweep_sixc, sweep_half
 	sweep_LE = np.tan(sweep_quarter) + 0.25 * (2*chord_root)/(span)*(1-taper_ratio)
 	sweep_sixc = np.tan(sweep_LE) - 0.6 * (2*chord_root)/(span)*(1-taper_ratio)
-	
+	sweep_half = np.tan(sweep_LE) - 0.5 * (2*chord_root)/(span)*(1-taper_ratio)
+	#will need out of loop and this is easier
+	global t_r
+	t_r = chord_root*t_cratio
+ 
 	#HLD and Control surfaces placement
 	delta_CLmax =  clmax_landing - cl_leadingedge -  CLmax_wingclean
 
@@ -203,41 +209,56 @@ def mainloop(clmax_landing):
 	cruise_density = (101325*(1+(-0.0065* cruise_altitude/288.15))**(-9.81/(-0.0065*287))) /(287* cruise_temp)
 	cruise_velocity =  cruise_minmach*np.sqrt(1.4* cruise_temp*287)
 	cruise_oswald_efficiency = 4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos( sweep_quarter),0.15) - 3.1
-	c_Drag =  C_D0_cruise + np.power( c_L_cruise,2)/(np.pi*aspect_ratio*cruise_oswald_efficiency)
+	c_Drag =  c_d0initial + np.power(c_L_cruise,2)/(np.pi*aspect_ratio*cruise_oswald_efficiency)
 	Drag = c_Drag * 0.5*cruise_density*np.power(cruise_velocity,2) * S
 
 	SAR =  specific_fuel_energy* efficiency_tf/(Drag)
+	print("SAR:",SAR)
 	frame = inspect.currentframe()
 	name,_,_,argvalue = inspect.getargvalues(frame)
 	iteratedvalue = argvalue[name[0]]
 	print(name, iteratedvalue)
-	thrust_max = float(design_point[1][0])*max_to_mass*9.81 /1000
-	return [SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max]
+	diff = span/2 - b_2[1]
+	print("Diff:", diff)
+	return [SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max, diff]
 
+######################################################
+#class 1 weight estimation
+M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl)
+
+#iterating the design (matching diagram, wing sizing, hld and control surfaces)
 results = []
-SARs = []
-for iterator in range(2620,2621,1): #iterating the design
-	var = iterator/1000
-	run = mainloop(var)
-	SARs.append(run[0])
-	results.append(run[1:])
+diffs = []
+current = 2500
+iterator = 10
+previous = 0
+while True: #iterating the design
+	var = current/1000
+	run = mainloop(var, M_MTO) #<-- mainloop function call
+	diffs.append(run[-1])
+	results.append(run[:-1])
+	current += iterator
+ 
+	if(run[-1]<0): #this optimization ensures the hld and alierons fill the whole wing. Optimal SAR is only optimal if aspect ratio is optimal!
+		optimal = previous
+		matchingdiag_print(lines, labels, design_point)
+		break
+	else:
+		previous = run
 # print(SARs)
+#optimal result
+# optimaldiff = min(diffs) #optimal is found when the SAR is maximum in the iterated range
+# optimal = results[diffs.index(optimaldiff)] #print the optimal results based on optimal aspect ratio
 
-optimalSAR = max(SARs) #optimal is found when the SAR is maximum in the iterated range
-optimal = results[SARs.index(optimalSAR)] #print the optimal results based on optimal aspect ratio
-optimal.insert(0,optimalSAR)
-labels = [["Optimal SAR:",'Iterated value:', 'S:', 'Span:', 'Chord_root:', 'Chord_tip:', 'S_wf:','y_1 (HLD):', 'y_2 (HLD):', 'b_2 (Aileron):', 'Maximum Thrust:'],["[m/kg]", "","[m^2]", "[m]","[m]","[m]","[m^2]","[m]","[m]","[m]",'[kN]']]
-# print("\n###{:^36}###".format("RESULTS"))
-
-# print("\nIterated variable: {:>18}".format(mainloop.__code__.co_varnames[0]))
-# for i in range(len(optimal)):
-# 	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
-# print("Diff:",optimal[3]/2 - optimal[9])
+labels = [["Optimal SAR:",'Iterated value:', 'S:', 'Span:', 'Chord_root:', 'Chord_tip:', 'S_wf:','y_1 (HLD):', 'y_2 (HLD):', 'b_2 (Aileron):', 'Maximum Thrust:', 'Diff:'],["[m/kg]", "","[m^2]", "[m]","[m]","[m]","[m^2]","[m]","[m]","[m]",'[kN]','[m]']]
+print("\n\033[1m\033[4m Optimal Results [m] \033[0m")
+print("Iterated variable: {:>18}".format(mainloop.__code__.co_varnames[0]))
+for i in range(len(optimal)):
+	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
 planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
 
 #mean aerodynamic chord
 MAC = 2/3 * optimal[4] * ((1+taper_ratio+taper_ratio**2)/(1+taper_ratio))
-
 #finding the fuselage dimensions
 S_wfuselage, l_fuselage, l_cabin, l_ncone = fuselage(83.1) #output: fuselage wetted surface area, fuselage length, cabin length, nose cone length
 cg_positions = find_cg(float(l_fuselage), l_ncone, l_cabin,m_f)
@@ -248,7 +269,18 @@ x_htail, htail_area, x_vtail, vtail_area = empennage_size(l_fuselage, cg_aft, MA
 S_wwing = 1.07*2*optimal[2]
 S_wHT = 1.05 * 2 * htail_area
 S_wVT = 1.05 * 2 * vtail_area
-c_d0new = 1.15 * (1/optimal[2] * (S_wfuselage * 0.08 + S_wwing * 0.007 + S_wHT * 0.008 + S_wVT * 0.008))
-print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0initial, c_d0new))
+S_wnacelles = 1 #todo
+c_d0new = 1.15 * (1/optimal[2] * (S_wfuselage * 0.08 + S_wwing * 0.007 + S_wnacelles*0.06 + S_wHT * 0.008 + S_wVT * 0.008))
+print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0initial, c_d0new)) #cd0 is wrong; 10x too large
 
-# plt.show() #uncomment to show dashboard
+#Weight estimation
+n_max = 2.5 #max loading factor estimmation
+n_ult = 1.5*n_max
+b_s = optimal[3]/np.cos(sweep_half)
+ZFW = (M_MTO - M_f)*9.81
+M_wing = (6.67e-3 * np.power(b_s,0.75)*(1+np.sqrt(1.905/b_s)*np.power(n_ult,0.55)*np.power((b_s/t_r)/(ZFW/optimal[2]),0.30)))*ZFW/9.81 #CHANGE TO A CONSISTENT METHOD FROM BOOK
+M_fuselage = 1 #todo
+M_powerplant = 1 #todo
+M_empennage = 1 #todo
+
+plt.show() #uncomment to show dashboard

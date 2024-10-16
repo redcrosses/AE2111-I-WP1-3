@@ -1,6 +1,11 @@
 import numpy as np
 inputs = 91
 
+#need everywhere
+max_to_mass = 265625 #kg
+aspect_ratio = 8.02
+
+#class I initial
 R_nominal = 11716 #[km]
 R_diversion = 250 #[km]
 t_E = 45 #[min]
@@ -8,9 +13,13 @@ f_con = 0
 m_OE = 0.65
 M_pl = 8500 #design payload! [kg]
 
-max_to_mass = 265625 #kg
-aspect_ratio = 8.02
+c_d0initial = 0.0168 #from Fred's excel Drag polar section
+c_L_cruise = 0.52924 #from the cruise angle of attack section
+parasite_drag = 0.0075
+initial_oswald = 1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
+liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0initial)
 
+#matching diagram
 approach_speed = 78 
 landing_massfraction = 0.79
 landing_temp_diff = 15
@@ -46,10 +55,13 @@ sweep_quarter = np.radians(28.39) #actually leading edge lmao
 taper_ratio = 0.2*(2-sweep_quarter)
 hld_margin = 1
 
+#airfoil
 Clratio =  0.8  #1.04
 Clmax = 1.797
 CLmax_wingclean = Clratio * Clmax
-clmax_landing = 2.6 #C_L design
+t_cratio = 0.12
+#C_L design
+clmax_landing = 2.6 
 
 delta_c_to_cf = 0.64
 c_ratio_TE = 1+ 0.35 * delta_c_to_cf #single-slotted fowler flap trailing edge
@@ -65,13 +77,14 @@ dalpha = 0.4581
 
 tau = 0.4
 
+#SAR
 specific_fuel_energy = 44e6
-efficiency_tf = 0.75
 
+#efficiencies
+efficiency_tf = 0.75
 jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
 # print(jet_eff)
-# tsfc = 22*np.power(bypass_ratio,-0.19)*1E-6 #from adsee estimation for turbofans?? or how else do you do it lol
-# print(tsfc)
-c_L_cruise = 0.52924 #from the cruise angle of attack section
-C_D0_cruise = 0.0168 #from Fred's excel Drag polar section
+
+
+
 
