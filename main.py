@@ -155,7 +155,7 @@ def matchingdiag_print(lines, labels, design_point):
 	plt.grid()
 
 
-def mainloop(clmax_landing, max_to_mass):
+def optimisation(clmax_landing, max_to_mass):
     #matching diagram
 	x_const = [100*i for i in range(0,91)]
 	global lines, labels, design_point
@@ -234,7 +234,7 @@ iterator = 10
 previous = 0
 while True: #iterating the design
 	var = current/1000
-	run = mainloop(var, M_MTO) #<-- mainloop function call
+	run = optimisation(var, M_MTO) #<-- optimisation function call
 	diffs.append(run[-1])
 	results.append(run[:-1])
 	current += iterator
@@ -252,7 +252,7 @@ while True: #iterating the design
 
 labels = [["Optimal SAR:",'Iterated value:', 'S:', 'Span:', 'Chord_root:', 'Chord_tip:', 'S_wf:','y_1 (HLD):', 'y_2 (HLD):', 'b_2 (Aileron):', 'Maximum Thrust:', 'Diff:'],["[m/kg]", "","[m^2]", "[m]","[m]","[m]","[m^2]","[m]","[m]","[m]",'[kN]','[m]']]
 print("\n\033[1m\033[4m Optimal Results [m] \033[0m")
-print("Iterated variable: {:>18}".format(mainloop.__code__.co_varnames[0]))
+print("Iterated variable: {:>18}".format(optimisation.__code__.co_varnames[0]))
 for i in range(len(optimal)):
 	print("{:24} {:.5f} {:16}".format(labels[0][i],optimal[i],labels[1][i]))
 planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
