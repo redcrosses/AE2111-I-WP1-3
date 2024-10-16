@@ -8,7 +8,7 @@ import inspect
 
 ###FUNCTIONS AND CLASSES###
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
-
+plt.figure(figsize=(15,5))
 def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
     # energy fuel is like the weird 41sth/kw or idk
 	#t_E is the Loiter time in emergencies
@@ -282,5 +282,5 @@ M_wing = (6.67e-3 * np.power(b_s,0.75)*(1+np.sqrt(1.905/b_s)*np.power(n_ult,0.55
 M_fuselage = 1 #todo
 M_powerplant = 1 #todo
 M_empennage = 1 #todo
-
+plt.tight_layout()
 plt.show() #uncomment to show dashboard
