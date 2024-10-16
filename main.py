@@ -21,6 +21,7 @@ def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_c
     M_f = m_f * M_MTO
     M_OE= m_OE * M_MTO
     print(R_lost, R_eq, R_div, m_f)
+    print("\n\033[1m\033[4m Class I Weight Estimation \033[0m")
     print("Operating empty: {:f}, \nFuel: {:f}, \nMax TO {:f}, \nFuel mass fraction: {:f}".format(M_OE, M_f, M_MTO, m_f))
     return(M_OE, M_f, M_MTO, m_f) #in kilos small m is mass fraction, big M is acutal mass
 
@@ -180,7 +181,6 @@ def optimisation(clmax_landing, max_to_mass):
 	chord_root = 2*S / ((1+ taper_ratio)*span)
 	chord_tip = chord_root *  taper_ratio
 	y_1 = 0.10*span/2 #position of the beginning of the HLD; 15% of the half-span
-	print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
 
 	#sweep angle relations (probably should be a function lol)
 	global sweep_LE, sweep_sixc, sweep_half
@@ -198,13 +198,13 @@ def optimisation(clmax_landing, max_to_mass):
 
 	S_wf = S_ratio * S
 	y_2 = np.min(np.roots([-(chord_root - chord_tip)/(span), chord_root, ((chord_root - chord_tip)/(span) * np.power(y_1,2) - chord_root*y_1 - S_wf/2)])) +  hld_margin
-	print("y_2 for HLD:", y_2)
+	
 	inter = 2* (chord_root - chord_tip)/span
 	C_lp = -4 * ( C_lalpha +  C_d0)/(S * np.power(span,2)) * ((chord_root/3 * np.power(span/2,3) - inter * np.power(span/2,4)/4))
 
 	C_lda = -( P * C_lp)/( dalpha) * (span/(2* stall_speed))
 	b_2 = np.roots([2/3 * (chord_root - chord_tip)/span, -chord_root/2, 0, chord_root/2 * np.power(y_2, 2) - 2/3 * (chord_root - chord_tip)/span * np.power(y_2, 3) + (C_lda*S*span)/(2* C_lalpha* tau)])
-	print("b_2 for alieron (select the reasonable one):",b_2)
+	
 
 	cruise_density = (101325*(1+(-0.0065* cruise_altitude/288.15))**(-9.81/(-0.0065*287))) /(287* cruise_temp)
 	cruise_velocity =  cruise_minmach*np.sqrt(1.4* cruise_temp*287)
@@ -213,13 +213,17 @@ def optimisation(clmax_landing, max_to_mass):
 	Drag = c_Drag * 0.5*cruise_density*np.power(cruise_velocity,2) * S
 
 	SAR =  specific_fuel_energy* efficiency_tf/(Drag)
-	print("SAR:",SAR)
 	frame = inspect.currentframe()
 	name,_,_,argvalue = inspect.getargvalues(frame)
 	iteratedvalue = argvalue[name[0]]
-	print(name, iteratedvalue)
+	
 	diff = span/2 - b_2[1]
-	print("Diff:", diff)
+	# print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
+	# print("y_2 for HLD:", y_2)
+	# print("b_2 for alieron (select the reasonable one):",b_2)
+	# print("SAR:",SAR)
+	# print(name[0], iteratedvalue)
+	# print("Diff:", diff)
 	return [SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max, diff]
 
 ######################################################
@@ -229,9 +233,9 @@ M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed,
 #iterating the design (matching diagram, wing sizing, hld and control surfaces)
 results = []
 diffs = []
-current = 2500
+current = 1000
 iterator = 10
-previous = 0
+previous = [0]
 while True: #iterating the design
 	var = current/1000
 	run = optimisation(var, M_MTO) #<-- optimisation function call
@@ -239,8 +243,12 @@ while True: #iterating the design
 	results.append(run[:-1])
 	current += iterator
  
-	if(run[-1]<0): #this optimization ensures the hld and alierons fill the whole wing. Optimal SAR is only optimal if aspect ratio is optimal!
+	if(run[-1]<0 and previous[-1]>0): #this optimization ensures the hld and alierons fill the whole wing. Optimal SAR is only optimal if aspect ratio is optimal!
 		optimal = previous
+		matchingdiag_print(lines, labels, design_point)
+		break
+	elif(run[-1]>0 and previous[-1]<0):
+		optimal = run
 		matchingdiag_print(lines, labels, design_point)
 		break
 	else:
