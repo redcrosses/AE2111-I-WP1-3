@@ -5,6 +5,8 @@ import math
 import matplotlib.pyplot as plt
 from intersect import intersection
 import inspect
+from unit_conversion import *
+from Class_II_weight import *
 
 ###FUNCTIONS AND CLASSES###
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
@@ -290,13 +292,40 @@ print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0initial, c_d0new)) #cd0 is wro
 print("\nOLD e: {0}, NEW e: {1}".format(initial_oswald, cruise_oswald_efficiency))
 
 #Weight estimation
-n_max = 2.5 #max loading factor estimmation
-n_ult = 1.5*n_max
-b_s = optimal[3]/np.cos(sweep_half)
-ZFW = (M_MTO - M_f)*9.81
-M_wing = (6.67e-3 * np.power(b_s,0.75)*(1+np.sqrt(1.905/b_s)*np.power(n_ult,0.55)*np.power((b_s/t_r)/(ZFW/optimal[2]),0.30)))*ZFW/9.81 #CHANGE TO A CONSISTENT METHOD FROM BOOK
-M_fuselage = 1 #todo
-M_powerplant = 1 #todo
-M_empennage = 1 #todo
-plt.tight_layout()
-plt.show() #uncomment to show dashboard
+# n_max = 2.5 #max loading factor estimmation
+# n_ult = 1.5*n_max
+# b_s = optimal[3]/np.cos(sweep_half)
+# ZFW = (M_MTO - M_f)*9.81
+# M_wing = (6.67e-3 * np.power(b_s,0.75)*(1+np.sqrt(1.905/b_s)*np.power(n_ult,0.55)*np.power((b_s/t_r)/(ZFW/optimal[2]),0.30)))*ZFW/9.81 #CHANGE TO A CONSISTENT METHOD FROM BOOK
+# M_fuselage = 1 #todo
+# M_powerplant = 1 #todo
+# M_empennage = 1 #todo
+# plt.tight_layout()
+# plt.show() #uncomment to show dashboard
+
+W_fw = 0.5 * M_f  
+q = 0.5 * (cruise_pressure/(287* cruise_temp)) * cruise_speed**2
+N_z =3.75
+W_dg = M_MTO #Gross design weight
+L_t = 29.39 - 13.09 #Wing quarter mac to tail quarter mac # DONT TRUST THIS VALUE
+
+def g(x):
+     value = (2*(x**2) - w**2) / (2*(x**2))
+     # Ensure the value is within the valid range for arccos
+     value = np.clip(value, -1, 1)
+     return np.pi * (x**2) - (1/2) * (x**2) * (np.arccos(value) - np.sin(np.arccos(value)))
+
+V_pr = g(3.12653) * l_cabin * 1.2 #inner diameter of cabin = constant = 3.12653 #1.2 to account for pressurized parts thats not cabin(complete guess)
+p_delta = 45.6 * 10**3
+W_press = 11.9 + (convert_units(V_pr, 'm^3', False) +convert_units(p_delta, 'pascals', False))**0.271
+H_t_H_v = 0 #IDK
+Nl = 1.5 * 3 # 1.5 * 12 wheels
+Wl = M_MTO * 0.87 # 1.5 * 12 wheels
+Lm = 6 #main landing gear length
+Ln = 6 #nose landing gear length
+
+
+Class_II_weight = class_II_weight(optimal[2], W_fw, aspect_ratio , sweep_quarter , q, taper_ratio , t_cratio , N_z, W_dg , S_wfuselage, L_t, liftoverdrag , W_press, htail_area , htail_sweep , htail_taper_ratio , vtail_area , vtail_sweep , H_t_H_v, vtail_taper_ratio , Nl, Wl, Lm, Ln)
+
+
+
