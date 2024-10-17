@@ -12,7 +12,7 @@ from scipy.optimize import minimize_scalar
 
 ###FUNCTIONS AND CLASSES##
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
-plt.figure(figsize=(15,5))
+
 def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
     # energy fuel is like the weird 41sth/kw or idk
 	#t_E is the Loiter time in emergencies
@@ -148,7 +148,7 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
 def planform_print(span, root_c, tip_c,sweep_quart):
-	plt.subplot(142)
+	plt.subplot(144)
 	plt.title("Wing Planform")
 	x = [0,0,span, span,0]
 	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
@@ -156,7 +156,7 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.gca().set_aspect('equal', 'box')
 
 def matchingdiag_print(lines, labels, design_point):
-	plt.subplot(141)
+	plt.subplot(142)
 	plt.title("Matching Diagram")
 	for i in range(len(lines)): #plotting all lines
 		plt.plot(lines[i][0], lines[i][1], label = labels[i])
@@ -180,7 +180,6 @@ def weight_range( mu_j , liftoverdrag, e_f , M_MTO , M_pl , M_plMax , M_OE, R_no
     #plt.plot([R_maxstruct ,M_plMax ],[R_nominal, M_pl],[R_ferry , 0])
     plt.plot([R_maxstruct, R_nominal , R_ferry],[M_plMax, M_pl , 0])
     plt.plot([0, 9545, 11716, 12697],[M_plMax,M_plMax, M_pl , 0])
-    plt.show()
 
 def aspect_ratio(sweep_le,lower_bound, upper_bound):
     x = sp.symbols('x')
@@ -266,6 +265,7 @@ def optimisation(clmax_landing, max_to_mass):
 	# print("Diff:", diff)
 	return [SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max, diff]
 
+plt.figure(figsize=(20,5))
 ######################################################
 #class 1 weight estimation
 aspect_ratio = aspect_ratio(sweep_quarter,0.1,15)
@@ -327,18 +327,6 @@ c_d0new = 1.15 * (1/optimal[2] * (S_wfuselage*0.08 + S_wwing*0.007 + S_wnacelles
 print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0initial, c_d0new)) #cd0 is wrong; 10x too large
 print("\nOLD e: {0}, NEW e: {1}".format(initial_oswald, cruise_oswald_efficiency))
 
-#Weight estimation
-# n_max = 2.5 #max loading factor estimmation
-# n_ult = 1.5*n_max
-# b_s = optimal[3]/np.cos(sweep_half)
-# ZFW = (M_MTO - M_f)*9.81
-# M_wing = (6.67e-3 * np.power(b_s,0.75)*(1+np.sqrt(1.905/b_s)*np.power(n_ult,0.55)*np.power((b_s/t_r)/(ZFW/optimal[2]),0.30)))*ZFW/9.81 #CHANGE TO A CONSISTENT METHOD FROM BOOK
-# M_fuselage = 1 #todo
-# M_powerplant = 1 #todo
-# M_empennage = 1 #todo
-# plt.tight_layout()
-# plt.show() #uncomment to show dashboard
-
 W_fw = 0.5 * M_f  
 q = 0.5 * (cruise_pressure/(287* cruise_temp)) * cruise_speed**2
 N_z =3.75
@@ -350,12 +338,13 @@ def g(x):
      # Ensure the value is within the valid range for arccos
      value = np.clip(value, -1, 1)
      return np.pi * (x**2) - (1/2) * (x**2) * (np.arccos(value) - np.sin(np.arccos(value)))
+plt.show()
 
 # V_pr = g(3.12653) * l_cabin * 1.2 #inner diameter of cabin = constant = 3.12653 #1.2 to account for pressurized parts thats not cabin(complete guess)
 # p_delta = 45.6 * 10**3
 # W_press = 11.9 + (convert_units(V_pr, 'm^3', False) +convert_units(p_delta, 'pascals', False))**0.271
 # H_t_H_v = 0 #IDK
-# Nl = 1.5 * 3 # 1.5 * 12 wheels
+# Nl = 1.5 * 3 # 1.5 * 3 wheels
 # Wl = M_MTO * 0.87 # 1.5 * 12 wheels
 # Lm = 6 #main landing gear length
 # Ln = 6 #nose landing gear length
