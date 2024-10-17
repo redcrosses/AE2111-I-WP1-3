@@ -113,7 +113,7 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
 	# print(cg_positions)
 	#plotting the cgs
 	a,b = zip(*np.vstack([cg_positions,[cg_matrix[1][0], cg_matrix[0][0]]])) #added the starting point for proper plotting
-	plt.subplot(2,3,3)
+	plt.subplot(133)
 	plt.title("Cg Positions")
 	plt.plot(a,b, 'bo-')
 	plt.plot((X_LEMAC, X_TEMAC),(1,1),'ro-')
@@ -141,7 +141,7 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
 def planform_print(span, root_c, tip_c,sweep_quart):
-	plt.subplot(2,3,4)
+	plt.subplot(132)
 	plt.title("Wing Planform")
 	x = [0,0,span, span,0]
 	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
@@ -149,7 +149,7 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.gca().set_aspect('equal', 'box')
 
 def matchingdiag_print(lines, labels, design_point):
-	plt.subplot(2,3,1)
+	plt.subplot(131)
 	plt.title("Matching Diagram")
 	for i in range(len(lines)): #plotting all lines
 		plt.plot(lines[i][0], lines[i][1], label = labels[i])
