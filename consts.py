@@ -25,6 +25,7 @@ landing_temp_diff = 15
 landing_fieldlengthreq = 1981.2
 cruise_massfraction = 0.95
 cruise_altitude = 9449.8
+cruise_pressure = 101325*(1+(-0.0065* cruise_altitude/288.15))**(-9.81/(-0.0065*287))
 ref_altitude = 100
 cruise_temp = 288.15-0.0065*(cruise_altitude-ref_altitude)
 cruise_minmach = 0.85

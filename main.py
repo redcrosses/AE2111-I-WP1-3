@@ -313,7 +313,7 @@ planform_print(optimal[3]/2,optimal[4],optimal[5], sweep_quarter)
 #mean aerodynamic chord
 MAC = 2/3 * optimal[4] * ((1+taper_ratio+taper_ratio**2)/(1+taper_ratio))
 #finding the fuselage dimensions
-S_wfuselage, l_fuselage, l_cabin, l_ncone = fuselage(83.1) #output: fuselage wetted surface area, fuselage length, cabin length, nose cone length
+S_wfuselage, l_fuselage, l_cabin, l_ncone,w = fuselage(83.1) #output: fuselage wetted surface area, fuselage length, cabin length, nose cone length
 cg_positions = find_cg(float(l_fuselage), l_ncone, l_cabin,m_f)
 cg_aft = np.max(cg_positions[:,0])
 x_htail, htail_area, x_vtail, vtail_area = empennage_size(l_fuselage, cg_aft, MAC,optimal[2],optimal[3])
@@ -351,17 +351,17 @@ def g(x):
      value = np.clip(value, -1, 1)
      return np.pi * (x**2) - (1/2) * (x**2) * (np.arccos(value) - np.sin(np.arccos(value)))
 
-V_pr = g(3.12653) * l_cabin * 1.2 #inner diameter of cabin = constant = 3.12653 #1.2 to account for pressurized parts thats not cabin(complete guess)
-p_delta = 45.6 * 10**3
-W_press = 11.9 + (convert_units(V_pr, 'm^3', False) +convert_units(p_delta, 'pascals', False))**0.271
-H_t_H_v = 0 #IDK
-Nl = 1.5 * 3 # 1.5 * 12 wheels
-Wl = M_MTO * 0.87 # 1.5 * 12 wheels
-Lm = 6 #main landing gear length
-Ln = 6 #nose landing gear length
+# V_pr = g(3.12653) * l_cabin * 1.2 #inner diameter of cabin = constant = 3.12653 #1.2 to account for pressurized parts thats not cabin(complete guess)
+# p_delta = 45.6 * 10**3
+# W_press = 11.9 + (convert_units(V_pr, 'm^3', False) +convert_units(p_delta, 'pascals', False))**0.271
+# H_t_H_v = 0 #IDK
+# Nl = 1.5 * 3 # 1.5 * 12 wheels
+# Wl = M_MTO * 0.87 # 1.5 * 12 wheels
+# Lm = 6 #main landing gear length
+# Ln = 6 #nose landing gear length
 
 
-Class_II_weight = class_II_weight(optimal[2], W_fw, aspect_ratio , sweep_quarter , q, taper_ratio , t_cratio , N_z, W_dg , S_wfuselage, L_t, liftoverdrag , W_press, htail_area , htail_sweep , htail_taper_ratio , vtail_area , vtail_sweep , H_t_H_v, vtail_taper_ratio , Nl, Wl, Lm, Ln)
-
+# Class_II_weight = class_II_weight(optimal[2], W_fw, aspect_ratio , sweep_quarter , q, taper_ratio , t_cratio , N_z, W_dg , S_wfuselage, L_t, liftoverdrag , W_press, htail_area , htail_sweep , htail_taper_ratio , vtail_area , vtail_sweep , H_t_H_v, vtail_taper_ratio , Nl, Wl, Lm, Ln)
+# work in progress!!
 
 

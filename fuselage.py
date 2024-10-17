@@ -127,7 +127,7 @@ def fuselage(req_vol_fuel):
 
     print("{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}".format("h_fus:", h_fus, "[m]", "w_fus:", w_fus, "[m]", "l_cabin:", l_cabin, "[m]", "l_n:", l_n, "[m]", "l_nc:", l_nc, "[m]", "l_tc:", l_tc, "[m]", "l_t:", l_t, "[m]", "l_cyl:", l_cyl, "[m]", "l_fus:", l_fus, "[m]", "fuel_area:", fuel_area, "[m^2]", "new_fuel_vol:", new_fuel_vol, "[m^3]", "r_chin:", r_chin, "[m]", "S_wfus:", S_wfus, ""))
     #^^chatgpt goated for this
-    return S_wfus, l_fus, l_cabin, l_nc
+    return S_wfus, l_fus, l_cabin, l_nc,w
 
 
 
