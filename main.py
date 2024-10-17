@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from intersect import intersection
 import inspect
 
-###FUNCTIONS AND CLASSES###
+###FUNCTIONS AND CLASSES##
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
 plt.figure(figsize=(15,5))
 def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
@@ -311,7 +311,7 @@ print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0initial, c_d0new)) #cd0 is wro
 print("\nOLD e: {0}, NEW e: {1}".format(initial_oswald, cruise_oswald_efficiency))
 
 #Weight estimation
-n_max = 2.5 #max loading factor estimmation
+n_max = 2.5 #max loading factor estimmatio
 n_ult = 1.5*n_max
 b_s = optimal[3]/np.cos(sweep_half)
 ZFW = (M_MTO - M_f)*9.81

@@ -6,7 +6,7 @@ max_to_mass = 265625 #kg
 aspect_ratio = 8.02
 
 #class I initial
-R_nominal = 11716 #[km]
+R_nominal = 11716 #[km
 R_diversion = 250 #[km]
 t_E = 45 #[min]
 f_con = 0
