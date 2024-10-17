@@ -84,6 +84,14 @@ efficiency_tf = 0.75
 jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
 # print(jet_eff)
 
+#empennage
+htail_sweep = 38 #deg
+htail_AR = 4
+htail_taper_ratio = 1/2
+
+vtail_sweep = 40 #deg
+vtail_AR = 3/2
+vtail_taper_ratio = 1/2
 
 
 
