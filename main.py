@@ -7,18 +7,23 @@ from intersect import intersection
 import inspect
 from unit_conversion import *
 from Class_II_weight import *
+import sympy as sp
+from scipy.optimize import minimize_scalar
 
-###FUNCTIONS AND CLASSES###
+###FUNCTIONS AND CLASSES##
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
 plt.figure(figsize=(15,5))
 def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
     # energy fuel is like the weird 41sth/kw or idk
 	#t_E is the Loiter time in emergencies
+
     g=9.81
     R_lost = 1/0.7 * (Liftoverdrag) * (h_CR + (V_CR**2)/(2*g)) /1000 # lost range via : LIft/Drag , height of cruise, velocity cruise
-    R_eq = (R_nom + R_lost)*(1+f_con)+1.2 
-    R_div + t_E * V_CR # nominal and lost range plus fraction trip fuel for contingency
+    R_eq = (R_nom + R_lost)*(1+f_con)+1.2 * R_div + (t_E * V_CR *60/1000)
+  # nominal and lost range plus fraction trip fuel for contingency
     m_f = 1- np.exp((-R_eq * g * 1000)/(jet_eff * energy_fuel * liftoverdrag))
+    # m_f=0.4
+    # m_OE = 0.52
     M_MTO = M_pl /(1-(m_OE)-(m_f))  # m_OE taken from reference or hallucinated
     M_f = m_f * M_MTO
     M_OE= m_OE * M_MTO
@@ -115,7 +120,7 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
 	# print(cg_positions)
 	#plotting the cgs
 	a,b = zip(*np.vstack([cg_positions,[cg_matrix[1][0], cg_matrix[0][0]]])) #added the starting point for proper plotting
-	plt.subplot(133)
+	plt.subplot(143)
 	plt.title("Cg Positions")
 	plt.plot(a,b, 'bo-')
 	plt.plot((X_LEMAC, X_TEMAC),(1,1),'ro-')
@@ -143,7 +148,7 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
 def planform_print(span, root_c, tip_c,sweep_quart):
-	plt.subplot(132)
+	plt.subplot(142)
 	plt.title("Wing Planform")
 	x = [0,0,span, span,0]
 	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
@@ -151,7 +156,7 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.gca().set_aspect('equal', 'box')
 
 def matchingdiag_print(lines, labels, design_point):
-	plt.subplot(131)
+	plt.subplot(141)
 	plt.title("Matching Diagram")
 	for i in range(len(lines)): #plotting all lines
 		plt.plot(lines[i][0], lines[i][1], label = labels[i])
@@ -160,22 +165,50 @@ def matchingdiag_print(lines, labels, design_point):
 	plt.ylim(0,1)
 	plt.legend()
 	plt.grid()
+def weight_range( mu_j , liftoverdrag, e_f , M_MTO , M_pl , M_plMax , M_OE, R_nominal , h_CR , V_CR , R_div):
+    g=9.81
+    print("here it ist")
+    R_lost = 1 / 0.7 * (liftoverdrag) * (h_CR + (V_CR ** 2) / (2 * g)) / 1000
+    R_aux= (R_nominal + R_lost)+1.2 * R_div + (t_E * V_CR *60/1000)  - R_nominal
 
+    R_maxstruct= mu_j *(liftoverdrag) * (e_f / (g*1000)) * np.log((M_MTO)/(M_OE+M_plMax))-R_aux
+    R_ferry= mu_j *(liftoverdrag) * (e_f / (g*1000)) * np.log((M_OE+M_f)/(M_OE))-R_aux
+    print(R_maxstruct)
+    print(R_nominal)
+    print(R_ferry)
+    plt.subplot(141)
+    #plt.plot([R_maxstruct ,M_plMax ],[R_nominal, M_pl],[R_ferry , 0])
+    plt.plot([R_maxstruct, R_nominal , R_ferry],[M_plMax, M_pl , 0])
+    plt.plot([0, 9545, 11716, 12697],[M_plMax,M_plMax, M_pl , 0])
+    plt.show()
+
+def aspect_ratio(sweep_le,lower_bound, upper_bound):
+    x = sp.symbols('x')
+    # Define the function
+    def y_func(x_val):
+        return 1 / (sp.pi * x_val * (4.61 * (1 - 0.045 * x_val**0.68) * (sp.cos(sweep_le)**0.15) - 3.1))
+
+    # Convert the function to a numerical form
+    y_numeric = sp.lambdify(x, y_func(x), 'numpy')
+    # Use minimize_scalar to find the minimum within the given bounds
+    result = minimize_scalar(y_numeric, bounds=(lower_bound, upper_bound), method='bounded')
+    return result.x  # return the x value and the minimum value
 
 def optimisation(clmax_landing, max_to_mass):
-    #matching diagram
+	#matching diagram
 	x_const = [100*i for i in range(0,91)]
+ 
 	global lines, labels, design_point
 	lines = [([min_speed_list(clmax_landing)]*91, x_const), ([field_length_list(clmax_landing)]*91, x_const),(wing_loading, cruise_speed_list())]
 	labels = ["Minimum speed","Landing Field Length","Cruise speed","Climb Gradient 1","Climb Gradient 2","Climb Gradient 3","Climb Gradient 4","Climb Gradient 5","Takeoff Field Length"]
-	
+
 	gradient = climb_gradient(0)
 	lines.append((wing_loading, 0.5*gradient.climb_gradient_list()))
 	for i in range(1,5):
 		gradient = climb_gradient(i)
 		lines.append((wing_loading, gradient.climb_gradient_list()))
 	lines.append((wing_loading, to_field_length_list(aspect_ratio)))
-	
+
 	design_point = find_design_point(0,lines) #make minimum speed line the target line to intersect with
 	thrust_max = float(design_point[1][0])*max_to_mass*9.81 /1000
 
@@ -206,13 +239,13 @@ def optimisation(clmax_landing, max_to_mass):
 
 	S_wf = S_ratio * S
 	y_2 = np.min(np.roots([-(chord_root - chord_tip)/(span), chord_root, ((chord_root - chord_tip)/(span) * np.power(y_1,2) - chord_root*y_1 - S_wf/2)])) +  hld_margin
-	
+
 	inter = 2* (chord_root - chord_tip)/span
 	C_lp = -4 * ( C_lalpha +  C_d0wing)/(S * np.power(span,2)) * ((chord_root/3 * np.power(span/2,3) - inter * np.power(span/2,4)/4))
 
 	C_lda = -( P * C_lp)/( dalpha) * (span/(2* stall_speed))
 	b_2 = np.roots([2/3 * (chord_root - chord_tip)/span, -chord_root/2, 0, chord_root/2 * np.power(y_2, 2) - 2/3 * (chord_root - chord_tip)/span * np.power(y_2, 3) + (C_lda*S*span)/(2* C_lalpha* tau)])
-	
+
 
 	cruise_density = (101325*(1+(-0.0065* cruise_altitude/288.15))**(-9.81/(-0.0065*287))) /(287* cruise_temp)
 	cruise_velocity =  cruise_minmach*np.sqrt(1.4* cruise_temp*287)
@@ -223,7 +256,7 @@ def optimisation(clmax_landing, max_to_mass):
 	frame = inspect.currentframe()
 	name,_,_,argvalue = inspect.getargvalues(frame)
 	iteratedvalue = argvalue[name[0]]
-	
+
 	diff = span/2 - b_2[1]
 	# print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
 	# print("y_2 for HLD:", y_2)
@@ -235,10 +268,13 @@ def optimisation(clmax_landing, max_to_mass):
 
 ######################################################
 #class 1 weight estimation
+aspect_ratio = aspect_ratio(sweep_quarter,0.1,15)
+print("Aspect ratio:", aspect_ratio)
 initial_oswald = 1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
 liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0initial)
 M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl)
 
+weight_range(jet_eff, liftoverdrag, specific_fuel_energy, M_MTO, M_pl , M_pl_max, M_OE , R_nominal , cruise_altitude , cruise_speed , R_diversion)
 #iterating the design (matching diagram, wing sizing, hld and control surfaces)
 results = []
 diffs = []

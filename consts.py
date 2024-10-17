@@ -6,12 +6,13 @@ max_to_mass = 265625 #kg
 aspect_ratio = 8.02
 
 #class I initial
-R_nominal = 11716 #[km]
+R_nominal = 11716 #[km
 R_diversion = 250 #[km]
 t_E = 45 #[min]
 f_con = 0
 m_OE = 0.65
 M_pl = 8500 #design payload! [kg]
+M_pl_max = 18960
 
 c_d0initial = 0.0168#from Fred's excel Drag polar section
 c_L_cruise = 0.52924 #from the cruise angle of attack section
