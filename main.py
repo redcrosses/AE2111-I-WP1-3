@@ -12,11 +12,14 @@ plt.figure(figsize=(15,5))
 def Class_1_est(Liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
     # energy fuel is like the weird 41sth/kw or idk
 	#t_E is the Loiter time in emergencies
+
     g=9.81
     R_lost = 1/0.7 * (Liftoverdrag) * (h_CR + (V_CR**2)/(2*g)) /1000 # lost range via : LIft/Drag , height of cruise, velocity cruise
-    R_eq = (R_nom + R_lost)*(1+f_con)+1.2 
-    R_div + t_E * V_CR # nominal and lost range plus fraction trip fuel for contingency
+    R_eq = (R_nom + R_lost)*(1+f_con)+1.2 * R_div + (t_E * V_CR *60/1000)
+  # nominal and lost range plus fraction trip fuel for contingency
     m_f = 1- np.exp((-R_eq * g * 1000)/(jet_eff * energy_fuel * liftoverdrag))
+    m_f=0.4
+    m_OE = 0.52
     M_MTO = M_pl /(1-(m_OE)-(m_f))  # m_OE taken from reference or hallucinated
     M_f = m_f * M_MTO
     M_OE= m_OE * M_MTO
@@ -113,7 +116,7 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
 	# print(cg_positions)
 	#plotting the cgs
 	a,b = zip(*np.vstack([cg_positions,[cg_matrix[1][0], cg_matrix[0][0]]])) #added the starting point for proper plotting
-	plt.subplot(133)
+	plt.subplot(143)
 	plt.title("Cg Positions")
 	plt.plot(a,b, 'bo-')
 	plt.plot((X_LEMAC, X_TEMAC),(1,1),'ro-')
@@ -141,7 +144,7 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	return htail_aero_centre_location, htail_area, vtail_aero_centre_location, vtail_area
 
 def planform_print(span, root_c, tip_c,sweep_quart):
-	plt.subplot(132)
+	plt.subplot(142)
 	plt.title("Wing Planform")
 	x = [0,0,span, span,0]
 	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
@@ -149,7 +152,7 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	plt.gca().set_aspect('equal', 'box')
 
 def matchingdiag_print(lines, labels, design_point):
-	plt.subplot(131)
+	plt.subplot(141)
 	plt.title("Matching Diagram")
 	for i in range(len(lines)): #plotting all lines
 		plt.plot(lines[i][0], lines[i][1], label = labels[i])
@@ -158,6 +161,23 @@ def matchingdiag_print(lines, labels, design_point):
 	plt.ylim(0,1)
 	plt.legend()
 	plt.grid()
+def weight_range( mu_j , liftoverdrag, e_f , M_MTO , M_pl , M_plMax , M_OE, R_nominal , h_CR , V_CR , R_div):
+    g=9.81
+    print("here it ist")
+    R_lost = 1 / 0.7 * (liftoverdrag) * (h_CR + (V_CR ** 2) / (2 * g)) / 1000
+    R_aux= (R_nominal + R_lost)+1.2 * R_div + (t_E * V_CR *60/1000)  - R_nominal
+
+    R_maxstruct= mu_j *(liftoverdrag) * (e_f / (g*1000)) * np.log((M_MTO)/(M_OE+M_plMax))      -R_aux
+    R_ferry= mu_j *(liftoverdrag) * (e_f / (g*1000)) * np.log((M_OE+M_f)/(M_OE))-R_aux
+    print(R_maxstruct)
+    print(R_nominal)
+    print(R_ferry)
+    plt.subplot(141)
+    #plt.plot([R_maxstruct ,M_plMax ],[R_nominal, M_pl],[R_ferry , 0])
+    plt.plot([R_maxstruct, R_nominal , R_ferry],[M_plMax, M_pl , 0])
+    plt.plot([0, 9545, 11716, 12697],[M_plMax,M_plMax, M_pl , 0])
+    plt.show()
+
 
 
 def optimisation(clmax_landing, max_to_mass):
@@ -237,6 +257,7 @@ initial_oswald = 1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
 liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0initial)
 M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl)
 
+weight_range(jet_eff, liftoverdrag, specific_fuel_energy, M_MTO, M_pl , M_pl_max, M_OE , R_nominal , cruise_altitude , cruise_speed , R_diversion)
 #iterating the design (matching diagram, wing sizing, hld and control surfaces)
 results = []
 diffs = []
