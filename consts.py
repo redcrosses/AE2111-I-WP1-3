@@ -10,7 +10,8 @@ R_nominal = 11716 #[km
 R_diversion = 250 #[km]
 t_E = 45 #[min]
 f_con = 0
-m_OE = 0.65
+# m_OE = 0.65
+m_OE = 0.52 #<- values are better
 M_pl = 8500 #design payload! [kg]
 M_pl_max = 18960
 

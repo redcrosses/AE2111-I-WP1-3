@@ -12,26 +12,26 @@ from scipy.optimize import minimize_scalar
 
 ###FUNCTIONS AND CLASSES##
 wing_loading = np.arange(0.1,9100,100) #<- 0.1 avoids the division by zero warning
-plt.figure(figsize=(20,5))
 #class I
-def Class_1_est(liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl):
-    # energy fuel is like the weird 41sth/kw or idk
+def Class_1_est(liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl, override = False):
+	# energy fuel is like the weird 41sth/kw or idk
 	#t_E is the Loiter time in emergencies
-
-    g=9.81
-    R_lost = 1/0.7 * (liftoverdrag) * (h_CR + (V_CR**2)/(2*g)) /1000 # lost range via : LIft/Drag , height of cruise, velocity cruise
-    R_eq = (R_nom + R_lost)*(1+f_con)+1.2 * R_div + (t_E * V_CR *60/1000)
-  # nominal and lost range plus fraction trip fuel for contingency
-    m_f = 1- np.exp((-R_eq * g * 1000)/(jet_eff * energy_fuel * liftoverdrag))
-    m_f=0.4 #<- iteration breaks but initial values are better
-    m_OE = 0.52 #<- iteration breaks but initial values are better
-    M_MTO = M_pl /(1-(m_OE)-(m_f))  # m_OE taken from reference or hallucinated
-    M_f = m_f * M_MTO
-    M_OE= m_OE * M_MTO
-    print(R_lost, R_eq, R_div, m_f)
-    print("\n\033[1m\033[4m Class I Weight Estimation \033[0m")
-    print("{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}".format("Operating empty:", M_OE, "[kg]", "Fuel:", M_f, "[kg]", "Max TO:", M_MTO, "[kg]", "Fuel mass fraction:", m_f, ""))
-    return(M_OE, M_f, M_MTO, m_f) #in kilos small m is mass fraction, big M is acutal mass
+	g=9.81
+	R_lost = 1/0.7 * (liftoverdrag) * (h_CR + (V_CR**2)/(2*g)) /1000 # lost range via : LIft/Drag , height of cruise, velocity cruise
+	R_eq = (R_nom + R_lost)*(1+f_con)+1.2 * R_div + (t_E * V_CR *60/1000)
+	# nominal and lost range plus fraction trip fuel for contingency
+	if override:
+		m_f= 0.415 #0.4 #<- iteration breaks but initial values are better
+	else:
+		m_f = 1- np.exp((-R_eq * g * 1000)/(jet_eff * energy_fuel * liftoverdrag))
+		
+	M_MTO = M_pl /(1-(m_OE)-(m_f))  # m_OE taken from reference or hallucinated
+	M_f = m_f * M_MTO
+	M_OE= m_OE * M_MTO
+	print(R_lost, R_eq, R_div, m_f)
+	print("\n\033[1m\033[4m Class I Weight Estimation \033[0m")
+	print("{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}".format("Operating empty:", M_OE, "[kg]", "Fuel:", M_f, "[kg]", "Max TO:", M_MTO, "[kg]", "Fuel mass fraction:", m_f, ""))
+	return(M_OE, M_f, M_MTO, m_f) #in kilos small m is mass fraction, big M is acutal mass
 
 #matching diagram
 def min_speed_list(clmax_landing):
@@ -120,7 +120,7 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel):
 	# print(cg_positions)
 	#plotting the cgs
 	a,b = zip(*np.vstack([cg_positions,[cg_matrix[1][0], cg_matrix[0][0]]])) #added the starting point for proper plotting
-	plt.subplot(143)
+	plt.subplot(223)
 	plt.title("Cg Positions")
 	plt.xlabel("x-position [m]")
 	plt.ylabel("Mass fraction")
@@ -157,7 +157,7 @@ def weight_range( mu_j , liftoverdrag, e_f , M_MTO , M_pl , M_plMax , M_OE, R_no
     R_maxstruct= mu_j *(liftoverdrag) * (e_f / (g*1000)) * np.log((M_MTO)/(M_OE+M_plMax))-R_aux
     R_ferry= mu_j *(liftoverdrag) * (e_f / (g*1000)) * np.log((M_OE+M_f)/(M_OE))-R_aux
     # print(R_maxstruct); print(R_nominal); print(R_ferry)
-    plt.subplot(141)
+    plt.subplot(221)
     plt.title("Payload-Range Diagram")
     plt.xlabel("Range [m]")
     plt.ylabel("Mass [kg]")
@@ -165,7 +165,7 @@ def weight_range( mu_j , liftoverdrag, e_f , M_MTO , M_pl , M_plMax , M_OE, R_no
     plt.plot([R_maxstruct, R_nominal , R_ferry],[M_plMax, M_pl , 0])
     plt.plot([0, 9545, 11716, 12697],[M_plMax,M_plMax, M_pl , 0])
 def matchingdiag_print(lines, labels, design_point):
-	plt.subplot(142)
+	plt.subplot(222)
 	plt.title("Matching Diagram")
 	plt.xlabel("W/S")
 	plt.ylabel("T/W")
@@ -177,7 +177,7 @@ def matchingdiag_print(lines, labels, design_point):
 	plt.legend()
 	plt.grid()
 def planform_print(span, root_c, tip_c,sweep_quart):
-	plt.subplot(144)
+	plt.subplot(224)
 	plt.title("Wing Planform")
 	x = [0,0,span, span,0]
 	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
@@ -302,15 +302,19 @@ def optimisation(clmax_landing, max_to_mass, c_d0initial):
 	# print("Diff:", diff)
 	return SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max, diff
 
-def runthatshit(c_d0initial):
+def runthatshit(c_d0initial, run):
 	######################################################
 	#class 1 weight estimation
 	global aspect_ratio,M_OE, M_f, M_MTO, m_f,labels,MAC
 	aspect_ratio = aspect_rat(sweep_quarter+np.radians(2),0.1,15) #calculating the optimal aspect ratio of the wing given (leading edge) sweep
-	initial_oswald = 1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
-	liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0initial)
+	initial_oswald = 4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
+	liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0)
 	print("LIFT OVER DRAG:",liftoverdrag)
-	M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl)
+ 
+	if run==1: override = True
+	else: override = False #makes the fuel mass fraction 0.4 on the first run, then it is calculated
+ 
+	M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl, override)
 
 	weight_range(jet_eff, liftoverdrag, specific_fuel_energy, M_MTO, M_pl , M_pl_max, M_OE , R_nominal , cruise_altitude , cruise_speed , R_diversion)
 	#iterating the design (matching diagram, wing sizing, hld and control surfaces)
@@ -400,9 +404,12 @@ def runthatshit(c_d0initial):
 c_d0 = 0.0168#from Fred's excel Drag polar section
 runcount = 1
 while 69:
+	plt.close()
+	plt.figure(figsize=(20,20))
 	print("RUN #{0}".format(runcount))
-	c_d0 = runthatshit(c_d0)
-	# plt.show()
-	input("Next run?")
+	c_d0 = runthatshit(c_d0,runcount)
+	
+	inp = input("Next run?")
+	if inp=="show": plt.show()
 	runcount+=1
 	
