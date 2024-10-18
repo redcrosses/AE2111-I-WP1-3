@@ -64,7 +64,7 @@ class climb_gradient():
 		climbgradient_total_pressure = (1+(1.4-1)/2*np.power(climbgradient_mach_number,2))*101325
 		climbgradient_delta_pressure = climbgradient_total_pressure/101325
 		climbgradient_thrust_lapse = climbgradient_delta_pressure*(1-(0.43+0.014* bypass_ratio)*np.sqrt(climbgradient_mach_number))
-		oswald_efficiency = 1/(math.pi* aspect_ratio* parasite_drag+(1/ span_efficiency))
+		# oswald_efficiency = 1/(math.pi* aspect_ratio* parasite_drag+(1/ span_efficiency))
 		return 2* climbgradient_massfraction[self.num]/climbgradient_thrust_lapse*( climbgradient_gradient[self.num]/100+2*math.sqrt( climbgradient_zerodrag[self.num]/(math.pi* climbgradient_oswaldfactor[self.num]* bypass_ratio)))
 
 def to_field_length_list(aspect_ratio):
@@ -183,6 +183,7 @@ def planform_print(span, root_c, tip_c,sweep_quart):
 	y = [root_c, 0, 0.25*root_c + np.tan(sweep_quart)*span - 0.25*tip_c, 0.25*root_c + np.tan(sweep_quart)*span + 0.75*tip_c,root_c]
 	plt.plot(x,y, 'ro-')
 	plt.gca().set_aspect('equal', 'box')
+	#ALSO MAKE IT PRINT THE FUSELAGE DIMENSIONS!
 
 def aspect_rat(sweep_le,lower_bound, upper_bound):
     x = sp.symbols('x')
@@ -265,7 +266,7 @@ def optimisation(clmax_landing, max_to_mass, c_d0initial):
 	#will need out of loop and this is easier
 	global t_r, cruise_oswald_efficiency
 	t_r = chord_root*t_cratio
-	cruise_oswald_efficiency = 4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1
+	cruise_oswald_efficiency = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_half)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1
 
 		
 	#HLD and Control surfaces placement
@@ -307,7 +308,7 @@ def runthatshit(c_d0initial, run):
 	#class 1 weight estimation
 	global aspect_ratio,M_OE, M_f, M_MTO, m_f,labels,MAC
 	aspect_ratio = aspect_rat(sweep_quarter+np.radians(2),0.1,15) #calculating the optimal aspect ratio of the wing given (leading edge) sweep
-	initial_oswald = 4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
+	initial_oswald = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_quarter)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
 	liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0)
 	print("LIFT OVER DRAG:",liftoverdrag)
  
