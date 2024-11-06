@@ -11,7 +11,7 @@ R_diversion = 250 #[km]
 t_E = 45 #[min]
 f_con = 0
 # m_OE = 0.65
-m_OE = 0.52 #<- values are better
+m_OE = 0.50 #<- values are better
 M_pl = 8500 #design payload! [kg]
 M_pl_max = 18960
 
@@ -83,7 +83,7 @@ specific_fuel_energy = 44e6
 #efficiencies
 efficiency_tf = 0.75
 jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
-# print(jet_eff)
+print(jet_eff)
 
 #empennage
 htail_sweep = 38 #deg
@@ -94,5 +94,14 @@ vtail_sweep = 40 #deg
 vtail_AR = 3/2
 vtail_taper_ratio = 1/2
 
+sumart = """
+                                     _              _               _                    _       _ 
+                                    | |            | |             | |                  | |     | |
+                     _ __ ___   __ _| | _____    __| | __ _   _ __ | | __ _ _ __   ___  | | ___ | |
+      __|__         | '_ ` _ \ / _` | |/ / _ \  / _` |/ _` | | '_ \| |/ _` | '_ \ / _ \ | |/ _ \| |
+*---o--(_)--o---*   | | | | | | (_| |   <  __/ | (_| | (_| | | |_) | | (_| | | | |  __/ | | (_) | |
+                    |_| |_| |_|\__,_|_|\_\___|  \__,_|\__,_| | .__/|_|\__,_|_| |_|\___| |_|\___/|_|
+                                                             | |                                   
+                                                             |_|                                   
 
-
+"""
