@@ -89,7 +89,7 @@ def class_II_weight(S_w, W_fw, Aspect_ratio, sweep, q, taper, tc, N_z, W_dg, S_f
     W_dg = convert_units(W_dg, 'newtons', False)
     S_f = convert_units(S_f, 'm^2', False)
     L_t = convert_units(L_t, 'm', False)
-    W_press = convert_units(W_press, 'pascal_psi', False)
+    W_press = convert_units(W_press, 'pascals_psi', False)
     S_ht = convert_units(S_ht, 'm^2', False)
     S_vt = convert_units(S_vt, 'm^2', False)
     Nl = convert_units(S_vt, 'm^2', False)
