@@ -3,7 +3,7 @@ inputs = 91
 
 #need everywhere
 max_to_mass = 265625 #kg
-aspect_ratio = 8.02
+mf = 0.42
 
 #class I initial
 R_nominal = 11716 #[km
@@ -23,6 +23,7 @@ approach_speed = 78
 landing_massfraction = 0.79
 landing_temp_diff = 15
 landing_fieldlengthreq = 1981.2
+
 cruise_massfraction = 0.95
 cruise_altitude = 9449.8
 cruise_pressure = 101325*(1+(-0.0065* cruise_altitude/288.15))**(-9.81/(-0.0065*287))
@@ -31,15 +32,28 @@ cruise_temp = 288.15-0.0065*(cruise_altitude-ref_altitude)
 cruise_minmach = 0.85
 cruise_speed = 0.85 * np.sqrt(1.4*287*cruise_temp)
 
+climb_req = 5 #roughly 1000ft/min (really small lmao but at 0.95 the mtow?)
+climb_altitude = 7400
+
 to_massfraction = 0.85
 to_altitude = 7400
-to_cL = 2.036181377 #to be changed
+to_cL = 2.036181377 #to be changed?
 to_field_length = 3048
 to_oswald_efficiency = 0.8286
 to_temp = 298
 to_pressure = 95457.84253
 
+#SAR
+specific_fuel_energy = 44e6
+
+#efficiencies
+efficiency_tf = 0.75
+
+#powerplant
 bypass_ratio = 10
+S_wnac = 1
+jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
+
 wetted_ratio = 6
 friction_coefficient = 0.0028
 parasite_drag = 0.0075
@@ -77,14 +91,6 @@ dalpha = 0.4581
 
 tau = 0.4
 
-#SAR
-specific_fuel_energy = 44e6
-
-#efficiencies
-efficiency_tf = 0.75
-jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
-print(jet_eff)
-
 #empennage
 htail_sweep = 38 #deg
 htail_AR = 4
@@ -94,14 +100,11 @@ vtail_sweep = 40 #deg
 vtail_AR = 3/2
 vtail_taper_ratio = 1/2
 
-sumart = """
-                                     _              _               _                    _       _ 
-                                    | |            | |             | |                  | |     | |
-                     _ __ ___   __ _| | _____    __| | __ _   _ __ | | __ _ _ __   ___  | | ___ | |
-      __|__         | '_ ` _ \ / _` | |/ / _ \  / _` |/ _` | | '_ \| |/ _` | '_ \ / _ \ | |/ _ \| |
-*---o--(_)--o---*   | | | | | | (_| |   <  __/ | (_| | (_| | | |_) | | (_| | | | |  __/ | | (_) | |
-                    |_| |_| |_|\__,_|_|\_\___|  \__,_|\__,_| | .__/|_|\__,_|_| |_|\___| |_|\___/|_|
-                                                             | |                                   
-                                                             |_|                                   
+sumart = """                                                     
+ __
+ \\  \\     _ _                ,---------------------------,
+  \\**\\ ___\\/ \\...............| this thing make plane lol |
+X*#####*+~~\\_\\               `---------------------------'
+  o/\\  \\
+     \\__\\"""
 
-"""

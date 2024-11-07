@@ -22,9 +22,8 @@ def Class_1_est(liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_c
 	R_eq = (R_nom + R_lost)*(1+f_con)+1.2 * R_div + (t_E * V_CR *60/1000)
 	# nominal and lost range plus fraction trip fuel for contingency
 	if override:
-		m_f= 0.42
+		m_f= mf
 	else:
-		# m_f= 0.4
 		m_f = 1- np.exp((-R_eq * g * 1000)/(jet_eff * energy_fuel * liftoverdrag))
 		
 	M_MTO = M_pl/(1-(m_OE)-(m_f))  # m_OE taken from reference or hallucinated
@@ -60,15 +59,29 @@ def field_length_list(clmax_landing):
 	landing_airdensity = 101325/(287*( landing_temp_diff+288.15))
 	return 1/ landing_massfraction* landing_fieldlengthreq/0.45*landing_airdensity* clmax_landing/2
 
-def cruise_speed_list():
+def cruise_speed_list(c_d0):
 	cruise_pressure = 101325*(1+(-0.0065* cruise_altitude/288.15))**(-9.81/(-0.0065*287))
 	cruise_totalpressure = cruise_pressure*(1+(1.4-1)/2* cruise_minmach**2)**3.5
 	cruise_deltapressure = cruise_totalpressure/101325
 	cruise_thrustlapse = cruise_deltapressure*(1-(0.43+0.014* bypass_ratio)*math.sqrt( cruise_minmach))
-	zerolift_drag =  friction_coefficient* wetted_ratio
+	zerolift_drag =  c_d0
 	cruise_density = cruise_pressure/(287* cruise_temp)
 	cruise_speed = math.sqrt(1.4*287* cruise_temp)* cruise_minmach
 	return  cruise_massfraction/cruise_thrustlapse*((zerolift_drag*0.5*cruise_density*cruise_speed**2)/( cruise_massfraction*wing_loading)+( cruise_massfraction*wing_loading)/(math.pi* aspect_ratio*initial_oswald*0.5*cruise_speed**2*cruise_density))
+
+def climb_rate_list(c_d0,bypass_ratio,aspect_ratio,oswald_efficiency):
+	climb_pressure = 28743.8
+	climb_density = climb_pressure/(287*cruise_temp)
+	highest_cl = np.sqrt(np.pi*c_d0*aspect_ratio*oswald_efficiency)
+	climb_mach = (np.sqrt((wing_loading*2)/(climb_density*highest_cl)))/np.sqrt(1.4*287*240.05)
+	
+	climb_totalpressure = climb_pressure*(1+(1.4-1)/2* climb_mach**2)**3.5
+	climb_deltapressure = climb_totalpressure/101325
+	climb_thrustlapse = climb_deltapressure*(1-(0.43+0.014* bypass_ratio)*np.sqrt(climb_mach))
+	# print(climb_totalpressure,climb_deltapressure,climb_thrustlapse, sep="\n")
+	res = cruise_massfraction/climb_thrustlapse * (np.sqrt((climb_req**2*climb_density)/(cruise_massfraction*wing_loading*2))*np.sqrt(highest_cl) + 2*np.sqrt(c_d0/(np.pi*aspect_ratio*oswald_efficiency)))
+	# print(res)
+	return res
 
 class climb_gradient():
 	def __init__(self, num):
@@ -200,6 +213,29 @@ def aspect_rat(sweep_le,lower_bound, upper_bound):
     result = minimize_scalar(y_numeric, bounds=(lower_bound, upper_bound), method='bounded')
     return result.x  # return the x value
 
+def powerplantparams():
+	print("okkk make sure the total max thrust is reached by the new config. TWO ENGINES IN TOTAL FIXED")
+	global bypass_ratio, S_wnac, jet_eff
+	while 69:
+		try:
+			bypass_ratio = float(input("Bypass ratio: "))
+			S_wnac = float(input("Wetted nacelle area: "))
+			jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
+		except:
+			print("invalid input >:(")
+		else: break
+
+def changemf():
+	print("okkk be gentle with it (change by ~0.1 at a time)")
+	while 69:
+		try:
+			inp = float(input())
+			global mf
+			mf = inp
+		except:
+			print("invalid input >:(")
+		else: break
+
 def cd0_FUNCTION(l_fus, l_wing):
 	M=0.85
 	rho=0.441653
@@ -240,15 +276,12 @@ def cd0_FUNCTION(l_fus, l_wing):
 
 	return(Cf_fuselage*FF_fuselage,Cf_wing*FF_wing*1.1,Cf_nacelle*FF_nacelle*1.5, CD_wave)
 
-
 def optimisation(clmax_landing, max_to_mass, c_d0initial):
 	#matching diagram
 	x_const = [100*i for i in range(0,91)]
- 
 	global lines, labels, design_point
-	lines = [([min_speed_list(clmax_landing)]*91, x_const), ([field_length_list(clmax_landing)]*91, x_const),(wing_loading, cruise_speed_list())]
-	labels = ["Minimum speed","Landing Field Length","Cruise speed","Climb Gradient 1","Climb Gradient 2","Climb Gradient 3","Climb Gradient 4","Climb Gradient 5","Takeoff Field Length"]
-
+	lines = [([min_speed_list(clmax_landing)]*91, x_const), ([field_length_list(clmax_landing)]*91, x_const),(wing_loading, cruise_speed_list(c_d0initial)), (wing_loading, climb_rate_list(c_d0initial, bypass_ratio, aspect_ratio, initial_oswald))]
+	labels = ["Minimum speed","Landing Field Length","Cruise speed","Climb rate","Climb Gradient 1","Climb Gradient 2","Climb Gradient 3","Climb Gradient 4","Climb Gradient 5","Takeoff Field Length"]
 	gradient = climb_gradient(0)
 	lines.append((wing_loading, 0.5*gradient.climb_gradient_list()))
 	for i in range(1,5):
@@ -278,21 +311,15 @@ def optimisation(clmax_landing, max_to_mass, c_d0initial):
 	t_r = chord_root*t_cratio
 	cruise_oswald_efficiency = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_half)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1
 
-		
 	#HLD and Control surfaces placement
 	delta_CLmax =  clmax_landing - cl_leadingedge -  CLmax_wingclean
-
 	S_ratio = delta_CLmax/(0.9 *  delta_clmax * np.cos(sweep_sixc))
-
 	S_wf = S_ratio * S
 	y_2 = np.min(np.roots([-(chord_root - chord_tip)/(span), chord_root, ((chord_root - chord_tip)/(span) * np.power(y_1,2) - chord_root*y_1 - S_wf/2)])) +  hld_margin
-
 	inter = 2* (chord_root - chord_tip)/span
 	C_lp = -4 * ( C_lalpha +  C_d0wing)/(S * np.power(span,2)) * ((chord_root/3 * np.power(span/2,3) - inter * np.power(span/2,4)/4))
-
 	C_lda = -( P * C_lp)/( dalpha) * (span/(2* stall_speed))
 	b_2 = np.roots([2/3 * (chord_root - chord_tip)/span, -chord_root/2, 0, chord_root/2 * np.power(y_2, 2) - 2/3 * (chord_root - chord_tip)/span * np.power(y_2, 3) + (C_lda*S*span)/(2* C_lalpha* tau)])
-
 
 	cruise_density = (101325*(1+(-0.0065* cruise_altitude/288.15))**(-9.81/(-0.0065*287))) /(287* cruise_temp)
 	cruise_velocity =  cruise_minmach*np.sqrt(1.4* cruise_temp*287)
@@ -313,18 +340,22 @@ def optimisation(clmax_landing, max_to_mass, c_d0initial):
 	# print("Diff:", diff)
 	return SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max, diff
 
-def runthatshit(c_d0initial, run):
+def runthatshit(c_d0, oswald, run):
 	######################################################
 	#class 1 weight estimation
-	global aspect_ratio,M_OE, M_f, M_MTO, m_f,labels,MAC, initial_oswald
+	global aspect_ratio,M_OE, M_f, M_MTO, m_f,labels,MAC,initial_oswald
 	aspect_ratio = aspect_rat(sweep_quarter+np.radians(2),0.1,15) #calculating the optimal aspect ratio of the wing given (leading edge) sweep for optimal SAR
-	initial_oswald = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_quarter)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
+	# aspect_ratio = 10 #this reduces the thrust requirement because of the climb rate req
+	override = True
+	if run==1: 	
+		initial_oswald = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_quarter)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(math.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
+		#override = True
+	else: 
+		initial_oswald = oswald
+		#override = False #makes the fuel mass fraction 0.4 on the first run, then it is calculated
+
 	liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0)
 	print("LIFT OVER DRAG:",liftoverdrag)
-	
-	override = True
-	# if run==1: override = True
-	# else: override = False #makes the fuel mass fraction 0.4 on the first run, then it is calculated
 
 	M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl, override)
 
@@ -338,7 +369,7 @@ def runthatshit(c_d0initial, run):
 	previous = [0]
 	while True: #iterating the design
 		var = current/1000
-		run_tuple = optimisation(var, M_MTO, c_d0initial) #<-- optimisation function call
+		run_tuple = optimisation(var, M_MTO, c_d0) #<-- optimisation function call
 		run = list(run_tuple) 
 		diffs.append(run[-1])
 		results.append(run[:-1])
@@ -386,10 +417,11 @@ def runthatshit(c_d0initial, run):
 	S_wwing = 1.07 * 2 * S_optimal
 	S_wHT = 1.05 * 2 * htail_area
 	S_wVT = 1.05 * 2 * vtail_area
-	S_wnacelles = 1 #todo
+	S_wnacelles = S_wnac #todo
+
 	cdc_fuselage, cdc_wing, cdc_nacelle, cd_wave = cd0_FUNCTION(l_fuselage, chord_root)
 	c_d0new = 1/S_optimal * (S_wfuselage*cdc_fuselage + S_wwing*cdc_wing + S_wnacelles*cdc_nacelle + S_wHT*0.008 + S_wVT * 0.008) + cd_wave
-	print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0initial, c_d0new))
+	print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0, c_d0new))
 	print("\nOLD e: {0}, NEW e: {1}".format(initial_oswald, cruise_oswald_efficiency))
 
 	W_fw = 0.5 * M_f  
@@ -415,18 +447,23 @@ def runthatshit(c_d0initial, run):
 
 	# Class_II_weight = class_II_weight(S_optimal, W_fw, aspect_ratio , sweep_quarter , q, taper_ratio , t_cratio , N_z, W_dg , S_wfuselage, L_t, liftoverdrag , W_press, htail_area , htail_sweep , htail_taper_ratio , vtail_area , vtail_sweep , H_t_H_v, vtail_taper_ratio , Nl, Wl, Lm, Ln)
 	# work in progress!!
-	return c_d0new
+	return c_d0new, cruise_oswald_efficiency
 
 c_d0 = 0.0168#from Fred's excel Drag polar section
+oswald = 0.8
 runcount = 1
 print(sumart)
 while 69:
 	plt.close()
 	plt.figure(figsize=(20,20))
 	art.tprint("run # "+str(runcount),font="Georgia11") #browse fonts here: https://patorjk.com/software/taag/#p=testall&f=Crawford2&t=Type%20Something%20
-	c_d0 = runthatshit(c_d0,runcount)
-	
-	inp = input("next run?")
-	if inp=="s": plt.show()
+	c_d0, oswald = runthatshit(c_d0, oswald ,runcount)
+	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[t] to change powerplant for next run", "[f] to change fuel fraction"))
+	while True: 
+		inp = input()
+		if inp=="s": plt.show()
+		if inp=="t": powerplantparams()
+		if inp=="f": changemf()
+		if inp=="": break
 	runcount+=1
 	
