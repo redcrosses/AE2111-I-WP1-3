@@ -53,6 +53,9 @@ efficiency_tf = 0.75
 bypass_ratio = 10
 S_wnac = 1
 jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
+M_powerplant = 8500 #total weight; 2 747 GE CF6-50
+nacelle_diameter = 2.5
+nacelle_length = 4
 
 wetted_ratio = 6
 friction_coefficient = 0.0028
