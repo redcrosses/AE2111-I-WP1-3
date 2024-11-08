@@ -112,7 +112,9 @@ def class_II_weight(S_w, W_fw, Aspect_ratio, sweep, q, taper, tc, N_z, W_dg, S_f
     
     #convert back
     W_tot = convert_units(W_tot, 'pounds_force', True)
-    return W_tot
+    W_wing = convert_units(W_wing, 'pounds_force', True)
+    W_fus = convert_units(W_fus, 'pounds_force', True)
+    return W_tot, W_wing, W_fus
 
 
 

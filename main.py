@@ -134,7 +134,7 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel, m_Prop):
 	M_empennage = 0.017
 	M_fuselage = 0.101
 	M_equipment = 0.089
-	M_wing = 0.122 #change these fractions to proper ones as info on these masses appears
+	M_wing = 0.122 
 	M_Nacelle = 0.0056
 	M_Prop = m_Prop/max_to_mass
 	fuselage_group = np.array([[M_empennage, M_fuselage, M_equipment],[0.95*fuselage_length, 0.4*fuselage_length, 0.4*fuselage_length]])
@@ -447,32 +447,34 @@ def runthatshit(c_d0, oswald, run):
 	print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0, c_d0new))
 	print("\nOLD e: {0}, NEW e: {1}".format(initial_oswald, cruise_oswald_efficiency))
 
-	W_fw = 0.5 * M_f  
-	q = 0.5 * (cruise_pressure/(287* cruise_temp)) * cruise_speed**2
-	N_z =3.75
-	W_dg = M_MTO #Gross design weight
-	L_t = 29.39 - 13.09 #Wing quarter mac to tail quarter mac # DONT TRUST THIS VALUE
-
+	#class II weight estimation
 	def g(x):
 		value = (2*(x**2) - w**2) / (2*(x**2))
 		# Ensure the value is within the valid range for arccos
 		value = np.clip(value, -1, 1)
 		return np.pi * (x**2) - (1/2) * (x**2) * (np.arccos(value) - np.sin(np.arccos(value)))
-	weight_tot = 100
+	W_fw = 0.5 * M_f  
+	q = 0.5 * (cruise_pressure/(287* cruise_temp)) * cruise_speed**2
+	N_z =3.75
+	W_dg = M_MTO #Gross design weight
+	L_t = 29.39 - 13.09 #Wing quarter mac to tail quarter mac # DONT TRUST THIS VALUE
+	
+	V_pr = g(3.12653) * l_cabin * 1.2 #inner diameter of cabin = constant = 3.12653 #1.2 to account for pressurized parts thats not cabin(complete guess)
+	p_delta = 45.6 * 10**3
+	W_press = 11.9 + (convert_units(V_pr, 'm^3', False) +convert_units(p_delta, 'pascals', False))**0.271
+	H_t_H_v = 0 #IDK
+	Nl = 1.5 * 3 # 1.5 * 3 wheels
+	Wl = M_MTO * 0.87 # 1.5 * 12 wheels
+	Lm = 6 #main landing gear length
+	Ln = 6 #nose landing gear length
+
+	W_tot_classII, W_wing, W_fus = class_II_weight(S_optimal, W_fw, aspect_ratio , sweep_quarter , q, taper_ratio , t_cratio , N_z, W_dg , S_wfuselage, L_t, liftoverdrag, W_press, htail_area , htail_sweep , htail_taper_ratio , vtail_area , vtail_sweep , H_t_H_v, vtail_taper_ratio , Nl, Wl, Lm, Ln)
+	# work in progress!!
+	print(W_tot_classII)
+
 	tracker = T_max #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
 
-	# V_pr = g(3.12653) * l_cabin * 1.2 #inner diameter of cabin = constant = 3.12653 #1.2 to account for pressurized parts thats not cabin(complete guess)
-	# p_delta = 45.6 * 10**3
-	# W_press = 11.9 + (convert_units(V_pr, 'm^3', False) +convert_units(p_delta, 'pascals', False))**0.271
-	# H_t_H_v = 0 #IDK
-	# Nl = 1.5 * 3 # 1.5 * 3 wheels
-	# Wl = M_MTO * 0.87 # 1.5 * 12 wheels
-	# Lm = 6 #main landing gear length
-	# Ln = 6 #nose landing gear length
-
-	# Class_II_weight = class_II_weight(S_optimal, W_fw, aspect_ratio , sweep_quarter , q, taper_ratio , t_cratio , N_z, W_dg , S_wfuselage, L_t, liftoverdrag, W_press, htail_area , htail_sweep , htail_taper_ratio , vtail_area , vtail_sweep , H_t_H_v, vtail_taper_ratio , Nl, Wl, Lm, Ln)
-	# work in progress!!
-	return c_d0new, cruise_oswald_efficiency, weight_tot, tracker
+	return c_d0new, cruise_oswald_efficiency, W_tot_classII/9.81, tracker
 
 c_d0 = 0.0168#from Fred's excel Drag polar section
 oswald = 0.8#initial value (placeholder)
@@ -485,18 +487,23 @@ input()
 while 69:
 	plt.close()
 	plt.figure(figsize=(20,20))
-	art.tprint("run#"+str(runcount), font="Larry 3D") #browse fonts here: https://patorjk.com/software/taag/#p=testall&f=Crawford2&t=Type%20Something%20
+	art.tprint("run#"+str(runcount), font="Larry 3D") #browse fonts here :) https://patorjk.com/software/taag/#p=testall&f=Crawford2&t=Type%20Something%20
 	c_d0, oswald, weight, tracked = runthatshit(c_d0, oswald,runcount)
 	weights[0].append(runcount); weights[1].append(weight)
 	tracks[0].append(runcount); tracks[1].append(tracked)
+
 	plt.subplot(235)
 	plt.title("Tracked variable")
 	plt.plot(tracks[0],tracks[1], "bo-")
 	plt.gca().set_aspect('auto','box')
+
 	plt.subplot(236)
 	plt.title("MTOW across runs")
 	plt.plot(weights[0],weights[1], "go-")
-	plt.gca().set_aspect('auto','box')
+	plt.xlabel("Run #")
+	plt.ylabel("MTOW [kg]")
+	plt.gca().set_ylim(bottom=0, top=1e6)
+	plt.gca().set_xlim(left=1,right=None)
 
 	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[d] to change powerplant for next run", "[f] to change fuel fraction"))
 	plt.suptitle("Dashboard Run #"+str(runcount))
