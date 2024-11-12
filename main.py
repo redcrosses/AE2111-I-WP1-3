@@ -191,8 +191,12 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	vtail_moment_arm_cg_aft = vtail_aero_centre_location - cg_aft
 	vtail_c_v = 0.066
 	vtail_area = (vtail_c_v * b * S_wing) / (vtail_moment_arm_cg_aft)
-	print("\n\033[1m\033[4m Empennage \033[0m")
-	print("{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}".format("Hor.Tail Location:", htail_aero_centre_location, "[m]", "Hor.Tail Area:", htail_area, "[m^2]", "Ver.Tail Location:", vtail_aero_centre_location, "[m]", "Ver.Tail Area:", vtail_area, "[m^2]"))
+	vtail_AR = 1.5
+	vtail_taper = 0.5
+	vtail_span = np.sqrt(vtail_area*vtail_AR)
+	vtail_root_c = 2*vtail_area/((1+vtail_taper)*vtail_span)
+	vtail_tip_c = vtail_root_c*vtail_taper
+	print("\n\033[1m\033[4m Empennage Details \033[0m\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}\n{:30} {:.5f} {:16}".format("Hor. Tail Aero Centre Location:", htail_aero_centre_location, "[m]", "Hor. Tail Moment Arm (CG aft):", htail_moment_arm_cg_aft, "[m]", "Hor. Tail Volume Coefficient:", htail_c_v, "[-]", "Hor. Tail Area:", htail_area, "[m^2]", "Hor. Tail Aspect Ratio:", htail_AR, "[-]", "Hor. Tail Taper Ratio:", htail_taper, "[-]", "Hor. Tail Span:", htail_span, "[m]", "Hor. Tail Root Chord:", htail_root_c, "[m]", "Hor. Tail Tip Chord:", htail_tip_c, "[m]", "Ver. Tail Aero Centre Location:", vtail_aero_centre_location, "[m]", "Ver. Tail Moment Arm (CG aft):", vtail_moment_arm_cg_aft, "[m]", "Ver. Tail Volume Coefficient:", vtail_c_v, "[-]", "Ver. Tail Area:", vtail_area, "[m^2]", "Ver. Tail Aspect Ratio:", vtail_AR, "[-]", "Ver. Tail Taper Ratio:", vtail_taper, "[-]", "Ver. Tail Span:", vtail_span, "[m]", "Ver. Tail Root Chord:", vtail_root_c, "[m]", "Ver. Tail Tip Chord:", vtail_tip_c, "[m]"))
 	return htail_aero_centre_location, htail_area, htail_span, htail_root_c, htail_tip_c, vtail_aero_centre_location, vtail_area
 
 def cd0_FUNCTION(l_fus, l_wing):
@@ -200,7 +204,7 @@ def cd0_FUNCTION(l_fus, l_wing):
 	rho=0.441653
 	V=256.5793
 	f_n=0.2763 ####nacelle length 0.9m and outer diameter 3.257
-	l_nacelle=0.9
+	l_nacelle=7.9
 	mu=0.0000148881
 	d=3.7328
 	Re_wing = (rho * V * l_wing) / mu
@@ -274,26 +278,35 @@ def engines_print(ypos, xpos, engine_diam, engine_length):
 #ui changing
 def powerplantparams():
 	print("okkk make sure the total max thrust is reached by the new config. TWO ENGINES IN TOTAL FIXED")
-	global bypass_ratio, S_wnac, jet_eff, M_powerplant, nacelle_length, nacelle_diameter
+	global bypass_ratio, S_wnac, jet_eff, M_powerplant
 	while 69:
 		try:
 			bypass_ratio = float(input("Bypass ratio: "))
 			S_wnac = float(input("Wetted nacelle area [m^2]: ")) #this will prob be calculated from nacelle diameter and length
 			M_powerplant = float(input("Total powerplant mass [kg]: "))
-			nacelle_diameter = float(input("Nacelle diameter [m]: "))
-			nacelle_length = float(input("Nacelle length [m]: "))
 			jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
 		except:
 			print("invalid input >:(")
 		else: break
 
 def changemf():
-	print("okkk be gentle with it (change by ~0.1 at a time)")
+	print("Changing fuel fraction: okkk be gentle with it (change by ~0.1 at a time)")
 	while 69:
 		try:
 			inp = float(input())
 			global mf
 			mf = inp
+		except:
+			print("invalid input >:(")
+		else: break
+
+def changemoe():
+	print("Changing m_OE: okkk be gentle with it (change by ~0.1 at a time)")
+	while 69:
+		try:
+			inp = float(input())
+			global m_OE
+			m_OE = inp
 		except:
 			print("invalid input >:(")
 		else: break
@@ -426,7 +439,7 @@ def runthatshit(c_d0, oswald, run):
 	print("{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}".format("Fuel volume: ", volume_f, "[m^3]", "Wing volume: ", volume_wing, "[m^3]"))
 
 	#finding the fuselage dimensions, visualisation
-	S_wfuselage, l_fuselage, l_cabin, l_ncone, w_fus ,w = fuselage(83.1) #THIS NEEDS TO BE DYNAMIC -- IT BREAKS FOR FUEL VOLUMES TOO SMALL output: fuselage wetted surface area, fuselage length, cabin length, nose cone length
+	S_wfuselage, l_fuselage, l_cabin, l_ncone, w_fus ,w = fuselage(volume_f) #THIS NEEDS TO BE DYNAMIC -- IT BREAKS FOR FUEL VOLUMES TOO SMALL output: fuselage wetted surface area, fuselage length, cabin length, nose cone length
 	cg_positions,x_lemac = find_cg(float(l_fuselage+l_ncone), l_ncone, l_cabin,m_f,M_powerplant)
 	cg_aft = np.max(cg_positions[:,0])
 	x_htail, htail_area, htail_span, htail_root_c, htail_tip_c, x_vtail, vtail_area = empennage_size(l_fuselage+l_ncone, cg_aft, MAC,S_optimal,span)
@@ -440,7 +453,7 @@ def runthatshit(c_d0, oswald, run):
 	S_wwing = 1.07 * 2 * S_optimal
 	S_wHT = 1.05 * 2 * htail_area
 	S_wVT = 1.05 * 2 * vtail_area
-	S_wnacelles = S_wnac #todo
+	S_wnacelles = S_wnac 
 
 	cdc_fuselage, cdc_wing, cdc_nacelle, cd_wave = cd0_FUNCTION(l_fuselage, chord_root)
 	c_d0new = 1/S_optimal * (S_wfuselage*cdc_fuselage + S_wwing*cdc_wing + S_wnacelles*cdc_nacelle + S_wHT*0.008 + S_wVT * 0.008) + cd_wave
@@ -470,9 +483,9 @@ def runthatshit(c_d0, oswald, run):
 
 	W_tot_classII, W_wing, W_fus = class_II_weight(S_optimal, W_fw, aspect_ratio , sweep_quarter , q, taper_ratio , t_cratio , N_z, W_dg , S_wfuselage, L_t, liftoverdrag, W_press, htail_area , htail_sweep , htail_taper_ratio , vtail_area , vtail_sweep , H_t_H_v, vtail_taper_ratio , Nl, Wl, Lm, Ln)
 	# work in progress!!
-	print(W_tot_classII)
+	print("Total weight:",W_tot_classII)
 
-	tracker = T_max #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
+	tracker = optimalSAR #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
 
 	return c_d0new, cruise_oswald_efficiency, W_tot_classII/9.81, tracker
 
@@ -505,13 +518,15 @@ while 69:
 	plt.gca().set_ylim(bottom=0, top=1e6)
 	plt.gca().set_xlim(left=1,right=None)
 
-	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[d] to change powerplant for next run", "[f] to change fuel fraction"))
+	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[d] to change powerplant for next run", "[f] to change fuel fraction, [g] to change m_OE"))
 	plt.suptitle("Dashboard Run #"+str(runcount))
 	while True: 
+		if runcount<5: break
 		inp = input()
 		if inp=="s": plt.show()
 		if inp=="d": powerplantparams()
 		if inp=="f": changemf()
+		if inp=="g": changemoe()
 		if inp=="": break
 	runcount+=1
 	

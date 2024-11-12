@@ -3,7 +3,8 @@ inputs = 91
 
 #need everywhere
 max_to_mass = 265625 #kg
-mf = 0.42
+mf = 0.423#0.42
+m_OE = 0.5#0.50 #<- values are better
 
 #class I initial
 R_nominal = 11716 #[km
@@ -11,7 +12,6 @@ R_diversion = 250 #[km]
 t_E = 45 #[min]
 f_con = 0
 # m_OE = 0.65
-m_OE = 0.50 #<- values are better
 M_pl = 8500 #design payload! [kg]
 M_pl_max = 18960
 
@@ -50,12 +50,13 @@ specific_fuel_energy = 44e6
 efficiency_tf = 0.75
 
 #powerplant
-bypass_ratio = 10
-S_wnac = 1
+#Trent 500 A340
+bypass_ratio = 7.5
+S_wnac = 50 #[m^2]
 jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
-M_powerplant = 8500 #total weight; 2 747 GE CF6-50
+M_powerplant = 5900*2 #total weight; 2 747 GE CF6-50
 nacelle_diameter = 2.5
-nacelle_length = 4
+nacelle_length = 4.37
 
 wetted_ratio = 6
 friction_coefficient = 0.0028
