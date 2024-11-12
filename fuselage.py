@@ -126,15 +126,13 @@ def fuselage(req_vol_fuel):
         if new_fuel_vol == req_vol_fuel:
             not_optimal = False
 
-    fuel_area = area_req
-
     S_wfus = (np.pi*w_fus/4)*((1/(3*l_nc**2))*((((4*l_nc**2)+(w_fus**2/4))**1.5)-((l_tc**3)/8))-w_fus+4*l_cyl+2*(np.sqrt((l_tc**2)+((w_fus**2)/4))))
 
-    print("{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}".format("h_fus:", h_fus, "[m]", "w_fus:", w_fus, "[m]", "l_cabin:", l_cabin, "[m]", "l_n:", l_n, "[m]", "l_nc:", l_nc, "[m]", "l_tc:", l_tc, "[m]", "l_t:", l_t, "[m]", "l_cyl:", l_cyl, "[m]", "l_fus:", l_fus, "[m]", "fuel_area:", fuel_area, "[m^2]", "new_fuel_vol:", new_fuel_vol, "[m^3]", "r_chin:", r_chin, "[m]", "S_wfus:", S_wfus, "[m^2]"))
+    print("{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}".format("h_fus:", h_fus, "[m]", "w_fus:", w_fus, "[m]", "l_cabin:", l_cabin, "[m]", "l_n:", l_n, "[m]", "l_nc:", l_nc, "[m]", "l_tc:", l_tc, "[m]", "l_t:", l_t, "[m]", "l_cyl:", l_cyl, "[m]", "l_fus:", l_fus, "[m]", "S_wfus:", S_wfus, "[m^2]"))
     #^^chatgpt goated for this
-    return S_wfus, l_fus, l_cabin, l_nc,w_fus,w
+    #return S_wfus, l_fus, l_cabin, l_nc,w_fus,w
 
-
+fuselage(83.1)
 
 
 
