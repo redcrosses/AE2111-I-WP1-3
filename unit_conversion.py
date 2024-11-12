@@ -24,6 +24,7 @@ def convert_units(value, unit, to_metric=True):
         'pascals': value / 47.8803,  # Pa to psf
         'pascals_psi': value / 6894.76,  # Pa to psi
         'newton_meters': value / 1.35582,  # Nm to lb-ft
+        'meters_per_sec': value / 0.3047999902 #m/s to ft/s
     }
 
     imperial_to_metric = {
@@ -45,6 +46,7 @@ def convert_units(value, unit, to_metric=True):
         'psf': value * 47.8803,  # psf to Pa
         'psi': value * 6894.76,  # psi to Pa
         'pound_feet': value * 1.35582,  # lb-ft to Nm
+        'ft_per_sec': value * 0.3047999902 #ft/s to m/s
     }
 
     if to_metric:
@@ -52,5 +54,4 @@ def convert_units(value, unit, to_metric=True):
     else:
         return metric_to_imperial.get(unit, "Unknown unit")
 
-print(convert_units(4,'m^2', False))  # Converts 10 feet to meters (default to_metric=True)
 

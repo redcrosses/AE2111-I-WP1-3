@@ -2,7 +2,9 @@ import numpy as np
 from consts import *
 from fuselage import *
 from unit_conversion import *
-from Class_II_weight import *
+#from Class_II_weight import *
+#from class_II_fixed import *
+from obp_class_II import *
 import matplotlib.pyplot as plt
 from intersect import intersection
 import inspect
@@ -439,7 +441,7 @@ def runthatshit(c_d0, oswald, run):
 	print("{:24} {:.5f} {:16}\n{:24} {:.5f} {:16}".format("Fuel volume: ", volume_f, "[m^3]", "Wing volume: ", volume_wing, "[m^3]"))
 
 	#finding the fuselage dimensions, visualisation
-	S_wfuselage, l_fuselage, l_cabin, l_ncone, w_fus ,w = fuselage(volume_f) #THIS NEEDS TO BE DYNAMIC -- IT BREAKS FOR FUEL VOLUMES TOO SMALL output: fuselage wetted surface area, fuselage length, cabin length, nose cone length
+	S_wfuselage, l_fuselage, l_cabin, l_ncone, w_fus ,w, l_cyl = fuselage(volume_f) #THIS NEEDS TO BE DYNAMIC -- IT BREAKS FOR FUEL VOLUMES TOO SMALL output: fuselage wetted surface area, fuselage length, cabin length, nose cone length
 	cg_positions,x_lemac = find_cg(float(l_fuselage+l_ncone), l_ncone, l_cabin,m_f,M_powerplant)
 	cg_aft = np.max(cg_positions[:,0])
 	x_htail, htail_area, htail_span, htail_root_c, htail_tip_c, x_vtail, vtail_area = empennage_size(l_fuselage+l_ncone, cg_aft, MAC,S_optimal,span)
@@ -470,7 +472,7 @@ def runthatshit(c_d0, oswald, run):
 	q = 0.5 * (cruise_pressure/(287* cruise_temp)) * cruise_speed**2
 	N_z =3.75
 	W_dg = M_MTO #Gross design weight
-	L_t = 29.39 - 13.09 #Wing quarter mac to tail quarter mac # DONT TRUST THIS VALUE
+	L_t = 29.39 - 15.09 #Wing quarter mac to tail quarter mac # DONT TRUST THIS VALUE
 	
 	V_pr = g(3.12653) * l_cabin * 1.2 #inner diameter of cabin = constant = 3.12653 #1.2 to account for pressurized parts thats not cabin(complete guess)
 	p_delta = 45.6 * 10**3
@@ -480,14 +482,19 @@ def runthatshit(c_d0, oswald, run):
 	Wl = M_MTO * 0.87 # 1.5 * 12 wheels
 	Lm = 6 #main landing gear length
 	Ln = 6 #nose landing gear length
+	K_ws = 0.75*(1+2*taper_ratio)/(1+taper_ratio)*(span*np.tan(sweep_quarter)/(l_cyl))
+	K_y = 0.3*L_t
 
-	W_tot_classII, W_wing, W_fus = class_II_weight(S_optimal, W_fw, aspect_ratio , sweep_quarter , q, taper_ratio , t_cratio , N_z, W_dg , S_wfuselage, L_t, liftoverdrag, W_press, htail_area , htail_sweep , htail_taper_ratio , vtail_area , vtail_sweep , H_t_H_v, vtail_taper_ratio , Nl, Wl, Lm, Ln)
+	# W_tot_classII, W_wing, W_fus = class_II_weight(W_dg, N_z, S_optimal, t_cratio, aspect_ratio, taper_ratio, L_t, np.cos(np.radians(sweep_quarter)), S_wf, 1, 0, htail_area, np.cos(np.radians(htail_sweep)), htail_AR, 0, 0, vtail_area, L_t, np.cos(np.radians(vtail_sweep)), vtail_AR, 1.06, 1, S_wfuselage, K_ws, liftoverdrag, 1, Wl, Nl, Lm, 12, 2, stall_speed, 1, 2, 1.017, Nl, 5900, 0, 2, 5900, volume_f,Ln, 0, K_y, l_cyl)
+
+	W_class_II = class_II_weight(W_dg, N_z, S_optimal, t_cratio, aspect_ratio, taper_ratio, L_t, np.cos(sweep_quarter), S_wf, 1, 0, htail_area, np.cos(np.radians(htail_sweep)), htail_AR, 0, 0, vtail_area, L_t, np.cos(np.radians(vtail_sweep)), vtail_AR, 1.06, 1, S_wfuselage, K_ws, liftoverdrag, 1, Wl, Nl, Lm, 12, 2, stall_speed, 1, 2, 1.017, Nl, 5900, 0, 2, 5900, volume_f,Ln, 0, K_y, l_cyl)
 	# work in progress!!
-	print("Total weight:",W_tot_classII)
+	print("\n", W_class_II.total, "\n")
+	
 
 	tracker = optimalSAR #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
 
-	return c_d0new, cruise_oswald_efficiency, W_tot_classII/9.81, tracker
+	return c_d0new, cruise_oswald_efficiency, W_class_II.total , tracker
 
 c_d0 = 0.0168#from Fred's excel Drag polar section
 oswald = 0.8#initial value (placeholder)
@@ -497,6 +504,8 @@ tracks = [[],[]]
 print(sumart)
 print("\033[32;5mpress [enter] to begin\033[0m")
 input()
+
+
 while 69:
 	plt.close()
 	plt.figure(figsize=(20,20))

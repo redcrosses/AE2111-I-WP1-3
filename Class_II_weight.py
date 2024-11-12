@@ -117,7 +117,6 @@ def class_II_weight(S_w, W_fw, Aspect_ratio, sweep, q, taper, tc, N_z, W_dg, S_f
     return W_tot, W_wing, W_fus
 
 
-
 #nr_passenger = 11
 #nr_pilot = 3
 #misc_weight = (32*nr_passenger) + (nr_pilot*60)
