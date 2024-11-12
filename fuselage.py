@@ -41,13 +41,18 @@ def fuselage(req_vol_fuel):
     #--------------------------------------------------------------
 
     print("\033[1m\033[4m Outer dimentions [m] \033[0m")
-    
+    double_bubble = False
+    if not double_bubble:
+        w_fus = outer_D #[m]
+        h_fus = outer_D #[m]
+    else:
+        w_fus = 3.35123 #[m]
+        h_fus = 4.05625 #[m]
+
+
     k_cabin = 1.17 #for long range airplanes
 
     w = 2.87375 #[m]
-
-    w_fus = 3.35123 #[m]
-    h_fus = 4.05625 #[m]
 
     d_fus = (w_fus+h_fus)/2
 
@@ -72,7 +77,7 @@ def fuselage(req_vol_fuel):
         value = np.clip(value, -1, 1)
         return np.pi * (x**2) - (1/2) * (x**2) * (np.arccos(value) - np.sin(np.arccos(value))) - area_req
 
-    while not_optimal:
+    while not_optimal and double_bubble:
         #1:start with initial radius dimentions
         #2:get cylynder length
         #3:calculate area required
