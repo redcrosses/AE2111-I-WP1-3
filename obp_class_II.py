@@ -22,7 +22,7 @@ class class_II_weight:
     K_y = convert_units(K_y, 'm', False)
 
     # Wing weight calculation
-    W_wing = 0.0051 * (W_dg * Nz)**0.557 * S_w**0.649 * A**0.5 * (t_c_root)**-0.4 * (1 + lam)**0.1 * (cos_Lambda)**-1 * S_csw**0.1
+    W_wing = 0.051 * (W_dg * Nz)**0.557 * S_w**0.649 * A**0.5 * (t_c_root)**-0.4 * (1 + lam)**0.1 * (cos_Lambda)**-1 * S_csw**0.1
 
     # Horizontal tail weight calculation
     W_horizontal_tail = 0.0379 * K_uh * (1 + F_w_Bh)**-0.25 * W_dg**0.639 * Nz**0.10 * S_ht**0.75 * L_t**-1 * K_y**0.704 * (cos_Lambda_ht)**-1 * A_ht**0.166 * (1 + S_e / S_ht)**0.1
@@ -78,5 +78,5 @@ class class_II_weight:
 # W_class_II = class_II_weight(W_dg, Nz, S_w, t_c_root, A, lam, L_t, cos_Lambda, S_csw, K_uh, F_w_Bh, S_ht, cos_Lambda_ht, A_ht, S_e, H_h, S_vt, K_2, cos_Lambda_vt, A_v, K_door, K_Lg, S_f, K_ws, L_D, K_mp, W_l, Nl, L_m, N_mw, N_mss, V_stall, K_np, N_nw, K_ng, N_Lt, W_ec, S_n, N_en,W_en, V_i,L_n, N_w, K_y,L)
 
 # print("wing:", W_class_II.wing)
-# print("total:", W_class_II.fus)
+# print("total:", W_class_II.total)
 # print(lam)
