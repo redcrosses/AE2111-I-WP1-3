@@ -138,7 +138,7 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel, m_Prop):
 	M_equipment = 0.089
 	M_wing = 0.122 
 	M_Nacelle = 0.0056
-	M_Prop = m_Prop/max_to_mass
+	M_Prop = m_Prop/M_MTO
 	fuselage_group = np.array([[M_empennage, M_fuselage, M_equipment],[0.95*fuselage_length, 0.4*fuselage_length, 0.4*fuselage_length]])
 	wing_group = np.array([[M_wing, M_Nacelle, M_Prop],[0.4*MAC, -3, -3]])
 	fus_sum = fuselage_group.prod(axis=0).sum()
@@ -151,7 +151,7 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel, m_Prop):
 	X_LEMAC = fus_pos + MAC*(wing_pos/MAC * M_wing_sum/M_fus_sum - xc_oew*(1+M_wing_sum/M_fus_sum))
 	X_TEMAC = X_LEMAC + MAC
 	#CG location
-	m_Payload = 18960/max_to_mass
+	m_Payload = 18960/M_MTO
 	cg_matrix = np.array([[m_OE, m_Payload, m_fuel],[X_LEMAC + xc_oew*MAC, nose_cone_length + 0.5*cabin_length, X_LEMAC+0.4*MAC]])
 	moments = cg_matrix.prod(axis=0)
 	# print(moments)
@@ -411,7 +411,7 @@ def runthatshit(c_d0, oswald, run):
 		results.append(run[:-1])
 		current += iterator
 	
-		if(run[-1]<0 and previous[-1]>0): #this optimization ensures the hld and alierons fill the whole wing, no more no less. Optimal SAR is only optimal if aspect ratio is optimal, so it is found accordingly in a previous step
+		if(run[-1]<0 and previous[-1]>0): #this optimization ensures the hld and alierons fill the whole wing, no more no less. Optimal SAR will then only be optimal if aspect ratio is optimal, so it is found accordingly in a previous step
 			optimal_list = previous
 			optimalSAR,iterated_value,S_optimal,span,chord_root,chord_tip,S_wf,y_1,y_2,b_2,T_max,diff = previous_tuple
 			matchingdiag_print(lines, labels, design_point)
@@ -524,7 +524,7 @@ while 69:
 	plt.plot(weights[0],weights[1], "go-")
 	plt.xlabel("Run #")
 	plt.ylabel("MTOW [kg]")
-	plt.gca().set_ylim(bottom=0, top=1e6)
+	plt.gca().set_ylim(bottom=0, top=200000)
 	plt.gca().set_xlim(left=1,right=None)
 
 	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[d] to change powerplant for next run", "[f] to change fuel fraction, [g] to change m_OE"))

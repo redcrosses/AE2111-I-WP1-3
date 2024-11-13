@@ -2,7 +2,7 @@ import numpy as np
 inputs = 91
 
 #need everywhere
-max_to_mass = 265625 #kg
+# max_to_mass = 265625 #kg
 mf = 0.423#0.42
 m_OE = 0.5#0.50 #<- values are better
 
