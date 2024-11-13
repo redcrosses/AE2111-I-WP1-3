@@ -59,13 +59,16 @@ class class_II_weight:
     self.wing = convert_units(W_wing,'pounds', True)
     self.htail = convert_units(W_horizontal_tail,'pounds', True)
     self.vtail = convert_units(W_vertical_tail,'pounds', True)
+    self.empennage = self.htail+self.vtail
     self.fus = convert_units(W_fuselage,'pounds', True)
     self.main_lg = convert_units(W_main_gear,'pounds', True)
     self.nose_lg = convert_units(W_nose_gear,'pounds', True)
+    self.gear = self.nose_lg + self.main_lg
     self.nacelle = convert_units(W_nacelle,'pounds', True)
     self.starter = convert_units(W_starter,'pounds', True)
     self.fuel_sys = convert_units(W_fuel_system,'pounds', True)
     self.powerplant = powerplant_mass
+    self.systems = self.powerplant + self.fuel_sys
 
     self.total = 1.33 * (self.wing + self.htail +self.vtail + self.fus + self.main_lg + self.nose_lg + self.fuel_sys + self.powerplant) #added a proportion to account for removable parts; proportion taken from ADSEE II lecture 5 slides #+ self.nacelle + self.starter
     pass

@@ -175,6 +175,7 @@ def find_cg(fuselage_length, nose_cone_length, cabin_length, m_fuel, m_Prop):
     "WOE+WP:", ' [m], '.join(["{:.5f}".format(round(x, 5)) for x in cg_positions[1]]), 
     "WOE+WP+WF:", ' [m], '.join(["{:.5f}".format(round(x, 5)) for x in cg_positions[2]]), 
     "WOE+WF:", ' [m], '.join(["{:.5f}".format(round(x, 5)) for x in cg_positions[3]]))) #thanks gpt
+	print("{:24} {:.5f} {:16}".format("X_LEMAC:",X_LEMAC,""))
 	return cg_positions, X_LEMAC
 
 def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
@@ -488,8 +489,13 @@ def runthatshit(c_d0, oswald, run):
 
 	W_class_II = class_II_weight(W_dg, N_z, S_optimal, t_cratio, aspect_ratio, taper_ratio, L_t, np.cos(sweep_quarter), S_wf, 1, 0, htail_area, np.cos(np.radians(htail_sweep)), htail_AR, 0, 0, vtail_area, L_t, np.cos(np.radians(vtail_sweep)), vtail_AR, 1.06, 1, S_wfuselage, K_ws, liftoverdrag, 1, Wl, Nl, Lm, 12, 2, stall_speed, 1, 2, 1.017, Nl, 5900, 0, 2, 5900, volume_f,Ln, 0, K_y, l_cyl, M_powerplant)
 
-	print("{:24} {:.5f} {:16}".format("Class II Total Weight:",W_class_II.total,"[kg]"))
-	W_class_II.printall()
+	print("{:24} {:.5f} {:16}".format("Class II OEW:",W_class_II.total,"[kg]"))
+	print("{:24} {:.5f} {:16}".format("Class II fuselage:",W_class_II.fus,"[kg]"))
+	print("{:24} {:.5f} {:16}".format("Class II wing:",W_class_II.wing,"[kg]"))
+	print("{:24} {:.5f} {:16}".format("Class II empennage:",W_class_II.empennage,"[kg]"))
+	print("{:24} {:.5f} {:16}".format("Class II gear:",W_class_II.gear,"[kg]"))
+	print("{:24} {:.5f} {:16}".format("Class II propulsion & systems:",W_class_II.systems,"[kg]"))
+	# W_class_II.printall()
 	tracker = optimalSAR #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
 
 	return c_d0new, cruise_oswald_efficiency, W_class_II.total, tracker
@@ -518,11 +524,11 @@ while 69:
 	plt.gca().set_aspect('auto','box')
 
 	plt.subplot(236)
-	plt.title("MTOW across runs")
+	plt.title("OEW across runs")
 	plt.plot(weights[0],weights[1], "go-")
 	plt.xlabel("Run #")
-	plt.ylabel("MTOW [kg]")
-	plt.gca().set_ylim(bottom=0, top=200000)
+	plt.ylabel("OEW [kg]")
+	# plt.gca().set_ylim(bottom=0, top=200000)
 	plt.gca().set_xlim(left=1,right=None)
 
 	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[d] to change powerplant for next run", "[f] to change fuel fraction, [g] to change m_OE"))
