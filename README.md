@@ -9,7 +9,6 @@ The code was run using Python version 3.10.9, with the following prerequisites:
 - scipy
 - art
 
-**Note:** the code is not optimized at all lmao but hey it did its job
-
+**Note:** the code is not optimized at all lmao but hey it did its job. The code is not perfect, ex. the wing placement and CG calculations are completely independent of the Class II weight estimations for those repsective parts and the code will only work for engines under the wing. 
 <h1>Usage</h1>
 All of the relevant constants used can be found in the consts.py file and changed according to your needs. Then, simply run the main.py file in your python environment and press enter.
