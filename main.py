@@ -489,12 +489,13 @@ def runthatshit(c_d0, oswald, run):
 
 	W_class_II = class_II_weight(W_dg, N_z, S_optimal, t_cratio, aspect_ratio, taper_ratio, L_t, np.cos(sweep_quarter), S_wf, 1, 0, htail_area, np.cos(np.radians(htail_sweep)), htail_AR, 0, 0, vtail_area, L_t, np.cos(np.radians(vtail_sweep)), vtail_AR, 1.06, 1, S_wfuselage, K_ws, liftoverdrag, 1, Wl, Nl, Lm, 12, 2, stall_speed, 1, 2, 1.017, Nl, 5900, 0, 2, 5900, volume_f,Ln, 0, K_y, l_cyl, M_powerplant)
 
-	print("{:24} {:.5f} {:16}".format("Class II OEW:",W_class_II.total,"[kg]"))
+	print("{:24} {:.5f} {:16}".format("Class II OEW:",W_class_II.oew,"[kg]"))
 	print("{:24} {:.5f} {:16}".format("Class II fuselage:",W_class_II.fus,"[kg]"))
 	print("{:24} {:.5f} {:16}".format("Class II wing:",W_class_II.wing,"[kg]"))
 	print("{:24} {:.5f} {:16}".format("Class II empennage:",W_class_II.empennage,"[kg]"))
 	print("{:24} {:.5f} {:16}".format("Class II gear:",W_class_II.gear,"[kg]"))
 	print("{:24} {:.5f} {:16}".format("Class II propulsion & systems:",W_class_II.systems,"[kg]"))
+	print("{:24} {:.5f} {:16}".format("Class II Miscellaneous:",W_class_II.misc,"[kg]"))
 	# W_class_II.printall()
 	tracker = optimalSAR #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
 

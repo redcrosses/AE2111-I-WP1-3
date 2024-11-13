@@ -70,7 +70,11 @@ class class_II_weight:
     self.powerplant = powerplant_mass
     self.systems = self.powerplant + self.fuel_sys
 
-    self.total = 1.33 * (self.wing + self.htail +self.vtail + self.fus + self.main_lg + self.nose_lg + self.fuel_sys + self.powerplant) #added a proportion to account for removable parts; proportion taken from ADSEE II lecture 5 slides #+ self.nacelle + self.starter
+    self.total = self.wing + self.htail +self.vtail + self.fus + self.main_lg + self.nose_lg + self.fuel_sys + self.powerplant +self.nacelle + self.starter
+    self.misc = self.total * 0.33
+    self.oew = self.total + self.misc
+
+    #added a proportion to account for removable parts; proportion taken from ADSEE II lecture 5 slides #+ self.nacelle + self.starter
     pass
 
   def printall(self):
