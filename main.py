@@ -459,8 +459,9 @@ def runthatshit(c_d0, oswald, run):
 
 	cdc_fuselage, cdc_wing, cdc_nacelle, cd_wave = cd0_FUNCTION(l_fuselage, chord_root)
 	c_d0new = 1/S_optimal * (S_wfuselage*cdc_fuselage + S_wwing*cdc_wing + S_wnacelles*cdc_nacelle + S_wHT*0.008 + S_wVT * 0.008) + cd_wave
-	print("\nOLD c_d0: {0}, NEW c_d0: {1}".format(c_d0, c_d0new))
-	print("\nOLD e: {0}, NEW e: {1}".format(initial_oswald, cruise_oswald_efficiency))
+	print("\n\033[1m\033[4m Drag & Class II Weight Estimation \033[0m")
+	print("OLD c_d0: {0}, NEW c_d0: {1}".format(c_d0, c_d0new))
+	print("OLD e: {0}, NEW e: {1}".format(initial_oswald, cruise_oswald_efficiency))
 
 	#class II weight estimation
 	def g(x):
@@ -489,8 +490,8 @@ def runthatshit(c_d0, oswald, run):
 
 	W_class_II = class_II_weight(W_dg, N_z, S_optimal, t_cratio, aspect_ratio, taper_ratio, L_t, np.cos(sweep_quarter), S_wf, 1, 0, htail_area, np.cos(np.radians(htail_sweep)), htail_AR, 0, 0, vtail_area, L_t, np.cos(np.radians(vtail_sweep)), vtail_AR, 1.06, 1, S_wfuselage, K_ws, liftoverdrag, 1, Wl, Nl, Lm, 12, 2, stall_speed, 1, 2, 1.017, Nl, 5900, 0, 2, 5900, volume_f,Ln, 0, K_y, l_cyl)
 	# work in progress!!
-	print("\n", W_class_II.total, "\n")
-	
+
+	print("{:24} {:.5f} {:16}".format("Class II Total Weight:",W_class_II.total,"[kg]"))
 
 	tracker = optimalSAR #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
 
