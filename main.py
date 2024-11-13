@@ -42,8 +42,6 @@ def Class_1_est(liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_c
 	M_f = m_f * M_MTO
 	M_OE= m_OE * M_MTO
 	# print(R_lost, R_eq, R_div, m_f)
-	print("\n\033[1m\033[4m Class I Weight Estimation \033[0m")
-	print("{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}".format("Max TO:", M_MTO, "[kg]", "Operating empty:", M_OE, "[kg]", "Fuel:", M_f, "[kg]", "Fuel mass fraction:", m_f, ""))
 	return(M_OE, M_f, M_MTO, m_f) #in kilos small m is mass fraction, big M is acutal mass
 
 def weight_range(mu_j, liftoverdrag, e_f, M_MTO, M_pl, M_plMax, M_OE, R_nominal, h_CR, V_CR, R_div):
@@ -316,9 +314,9 @@ def changemoe():
 def optimisation(clmax_landing, max_to_mass, c_d0initial):
 	#matching diagram
 	x_const = [100*i for i in range(0,91)]
-	global lines, labels, design_point
+	global lines, labels_match, design_point
 	lines = [([min_speed_list(clmax_landing)]*91, x_const), ([field_length_list(clmax_landing)]*91, x_const),(wing_loading, cruise_speed_list(c_d0initial)), (wing_loading, climb_rate_list(c_d0initial, bypass_ratio, aspect_ratio, initial_oswald))]
-	labels = ["Minimum speed","Landing Field Length","Cruise speed","Climb rate","Climb Gradient 1","Climb Gradient 2","Climb Gradient 3","Climb Gradient 4","Climb Gradient 5","Takeoff Field Length"]
+	labels_match = ["Minimum speed","Landing Field Length","Cruise speed","Climb rate","Climb Gradient 1","Climb Gradient 2","Climb Gradient 3","Climb Gradient 4","Climb Gradient 5","Takeoff Field Length"]
 	gradient = climb_gradient(0)
 	lines.append((wing_loading, 0.5*gradient.climb_gradient_list()))
 	for i in range(1,5):
@@ -377,23 +375,10 @@ def optimisation(clmax_landing, max_to_mass, c_d0initial):
 	# print("Diff:", diff)
 	return SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max, diff
 
-def runthatshit(c_d0, oswald, run):
-	######################################################
-	#class 1 weight estimation
-	global aspect_ratio,M_OE, M_f, M_MTO, m_f,labels,MAC,initial_oswald
-	aspect_ratio = aspect_rat(sweep_quarter+np.radians(2),0.1,15) #calculating the optimal aspect ratio of the wing given (leading edge) sweep for optimal SAR
-	# aspect_ratio = 10 #this reduces the thrust requirement because of the climb rate req
-	override = True
-	if run==1: 	
-		initial_oswald = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_quarter)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(np.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
-		#override = True
-	else: 
-		initial_oswald = oswald
-		#override = False #makes the fuel mass fraction 0.4 on the first run, then it is calculated
-
-	liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0)
-	M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl, override)
-	
+def runthatshit(c_d0, oswald, run, M_OE, M_f, M_MTO, m_f):
+	global MAC
+	print("\n\033[1m\033[4m Class I Weight Estimation \033[0m")
+	print("{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}".format("Max TO:", M_MTO, "[kg]", "Operating empty:", M_OE, "[kg]", "Fuel:", M_f, "[kg]", "Fuel mass fraction:", m_f, ""))
 	volume_f = M_f/800 #fuel density
 	weight_range(jet_eff, liftoverdrag, specific_fuel_energy, M_MTO, M_pl , M_pl_max, M_OE , R_nominal , cruise_altitude , cruise_speed , R_diversion)
 	print("{:24} {:.5f} {:16}".format("Lift over Drag:",liftoverdrag,""))
@@ -414,12 +399,12 @@ def runthatshit(c_d0, oswald, run):
 		if(run[-1]<0 and previous[-1]>0): #this optimization ensures the hld and alierons fill the whole wing, no more no less. Optimal SAR will then only be optimal if aspect ratio is optimal, so it is found accordingly in a previous step
 			optimal_list = previous
 			optimalSAR,iterated_value,S_optimal,span,chord_root,chord_tip,S_wf,y_1,y_2,b_2,T_max,diff = previous_tuple
-			matchingdiag_print(lines, labels, design_point)
+			matchingdiag_print(lines, labels_match, design_point)
 			break
 		elif(run[-1]>0 and previous[-1]<0):
 			optimal_list = run
 			optimalSAR,iterated_value,S_optimal,span,chord_root,chord_tip,S_wf,y_1,y_2,b_2,T_max,diff = run_tuple
-			matchingdiag_print(lines, labels, design_point)
+			matchingdiag_print(lines, labels_match, design_point)
 			break
 		else:
 			previous = run
@@ -494,8 +479,8 @@ def runthatshit(c_d0, oswald, run):
 
 	return c_d0new, cruise_oswald_efficiency, W_class_II.total, tracker
 
-c_d0 = 0.0168#from Fred's excel Drag polar section
-oswald = 0.8#initial value (placeholder)
+c_d0 = 0.022507432694786077 #from Fred's excel Drag polar section
+oswald = 0.8910851997999907#initial value (placeholder)
 runcount = 1
 weights = [[],[]]
 tracks = [[],[]]
@@ -503,13 +488,26 @@ print(sumart)
 print("\033[32;5mpress [enter] to begin\033[0m")
 input()
 
+######################################################
+#class 1 weight estimation
+global aspect_ratio,M_OE, M_f, M_MTO, m_f, initial_oswald
+aspect_ratio = aspect_rat(sweep_quarter+np.radians(2),0.1,15) #calculating the optimal aspect ratio of the wing given (leading edge) sweep for optimal SAR
+# aspect_ratio = 10 #this reduces the thrust requirement because of the climb rate req
+override = True	
+initial_oswald = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_quarter)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(np.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
+#override = True
+initial_oswald = oswald
+#override = False #makes the fuel mass fraction 0.4 on the first run, then it is calculated
+
+liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0)
+M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl, override)
 
 while 69:
 	plt.close()
 	plt.figure(figsize=(20,20))
 	art.tprint("run#"+str(runcount), font="Larry 3D") #browse fonts here :) https://patorjk.com/software/taag/#p=testall&f=Crawford2&t=Type%20Something%20
-	c_d0, oswald, weight_oe, tracked = runthatshit(c_d0, oswald,runcount)
-	weights[0].append(runcount); weights[1].append(weight_oe)
+	c_d0, oswald, M_OE, tracked = runthatshit(c_d0, oswald,runcount, M_OE, M_f, M_MTO, m_f)
+	weights[0].append(runcount); weights[1].append(M_OE)
 	tracks[0].append(runcount); tracks[1].append(tracked)
 
 	plt.subplot(235)
@@ -528,7 +526,7 @@ while 69:
 	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[d] to change powerplant for next run", "[f] to change fuel fraction, [g] to change m_OE"))
 	plt.suptitle("Dashboard Run #"+str(runcount))
 	while True: 
-		if runcount<5: break
+		if runcount<1: break
 		inp = input()
 		if inp=="s": plt.show()
 		if inp=="d": powerplantparams()
