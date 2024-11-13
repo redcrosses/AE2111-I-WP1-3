@@ -10,3 +10,6 @@ The code was run using Python version 3.10.9, with the following prerequisites:
 - art
 
 **Note:** the code is not optimized at all lmao but hey it did its job
+
+<h1>Usage</h1>
+All of the relevant constants used can be found in the consts.py file and changed according to your needs. Then, simply run the main.py file in your python environment and press enter.
