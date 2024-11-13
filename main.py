@@ -486,16 +486,13 @@ def runthatshit(c_d0, oswald, run):
 	K_ws = 0.75*(1+2*taper_ratio)/(1+taper_ratio)*(span*np.tan(sweep_quarter)/(l_cyl))
 	K_y = 0.3*L_t
 
-	# W_tot_classII, W_wing, W_fus = class_II_weight(W_dg, N_z, S_optimal, t_cratio, aspect_ratio, taper_ratio, L_t, np.cos(np.radians(sweep_quarter)), S_wf, 1, 0, htail_area, np.cos(np.radians(htail_sweep)), htail_AR, 0, 0, vtail_area, L_t, np.cos(np.radians(vtail_sweep)), vtail_AR, 1.06, 1, S_wfuselage, K_ws, liftoverdrag, 1, Wl, Nl, Lm, 12, 2, stall_speed, 1, 2, 1.017, Nl, 5900, 0, 2, 5900, volume_f,Ln, 0, K_y, l_cyl)
-
-	W_class_II = class_II_weight(W_dg, N_z, S_optimal, t_cratio, aspect_ratio, taper_ratio, L_t, np.cos(sweep_quarter), S_wf, 1, 0, htail_area, np.cos(np.radians(htail_sweep)), htail_AR, 0, 0, vtail_area, L_t, np.cos(np.radians(vtail_sweep)), vtail_AR, 1.06, 1, S_wfuselage, K_ws, liftoverdrag, 1, Wl, Nl, Lm, 12, 2, stall_speed, 1, 2, 1.017, Nl, 5900, 0, 2, 5900, volume_f,Ln, 0, K_y, l_cyl)
-	# work in progress!!
+	W_class_II = class_II_weight(W_dg, N_z, S_optimal, t_cratio, aspect_ratio, taper_ratio, L_t, np.cos(sweep_quarter), S_wf, 1, 0, htail_area, np.cos(np.radians(htail_sweep)), htail_AR, 0, 0, vtail_area, L_t, np.cos(np.radians(vtail_sweep)), vtail_AR, 1.06, 1, S_wfuselage, K_ws, liftoverdrag, 1, Wl, Nl, Lm, 12, 2, stall_speed, 1, 2, 1.017, Nl, 5900, 0, 2, 5900, volume_f,Ln, 0, K_y, l_cyl, M_powerplant)
 
 	print("{:24} {:.5f} {:16}".format("Class II Total Weight:",W_class_II.total,"[kg]"))
-
+	W_class_II.printall()
 	tracker = optimalSAR #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
 
-	return c_d0new, cruise_oswald_efficiency, W_class_II.total , tracker
+	return c_d0new, cruise_oswald_efficiency, W_class_II.total, tracker
 
 c_d0 = 0.0168#from Fred's excel Drag polar section
 oswald = 0.8#initial value (placeholder)
@@ -511,8 +508,8 @@ while 69:
 	plt.close()
 	plt.figure(figsize=(20,20))
 	art.tprint("run#"+str(runcount), font="Larry 3D") #browse fonts here :) https://patorjk.com/software/taag/#p=testall&f=Crawford2&t=Type%20Something%20
-	c_d0, oswald, weight, tracked = runthatshit(c_d0, oswald,runcount)
-	weights[0].append(runcount); weights[1].append(weight)
+	c_d0, oswald, weight_oe, tracked = runthatshit(c_d0, oswald,runcount)
+	weights[0].append(runcount); weights[1].append(weight_oe)
 	tracks[0].append(runcount); tracks[1].append(tracked)
 
 	plt.subplot(235)
