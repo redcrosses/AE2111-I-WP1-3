@@ -61,10 +61,10 @@ efficiency_tf = 0.75
 
 #powerplant
 #PW PW1000G
-bypass_ratio = 7 #change to 11
-S_wnac = 100 #[m^2] #change to 50
+bypass_ratio = 11 #change to 11
+S_wnac = 50 #[m^2] #change to 50
 jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
-M_powerplant = 5200*2 #total weight; change 10000
+M_powerplant = 5000*2 #total weight; change 10000
 nacelle_diameter = 2.5
 nacelle_length = 4.37
 

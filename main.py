@@ -450,12 +450,19 @@ def runthatshit(c_d0, oswald, run, M_oeinput):
 	planform_print(htail_span/2,htail_root_c,htail_tip_c,np.radians(38),x_htail) #empennage
 	engines_print(x_lemac-3,5,nacelle_diameter,nacelle_length)
 
-	#new drag estimation (fast estimation)
+	#new drag estimation (drag build-up)
 	S_wwing = 1.07 * 2 * S_optimal
 	S_wHT = 1.05 * 2 * htail_area
 	S_wVT = 1.05 * 2 * vtail_area
 	S_wnacelles = S_wnac 
 
+	print("\033[1m\033[4m Wetted Surface Areas \033[0m")
+	print("{:24} {:.5f} {:16}".format("Wetted Area Wing",S_wwing,"[m^2]"))
+	print("{:24} {:.5f} {:16}".format("Wetted Area Hor. Stab.",S_wHT,"[m^2]"))
+	print("{:24} {:.5f} {:16}".format("Wetted Area Vert. Stab.",S_wVT,"[m^2]"))
+	print("{:24} {:.5f} {:16}".format("Wetted Area Nacelles:",S_wnacelles,"[m^2]"))
+	
+ 
 	cdc_fuselage, cdc_wing, cdc_nacelle, cd_wave = cd0_FUNCTION(l_fuselage, chord_root)
 	c_d0new = 1/S_optimal * (S_wfuselage*cdc_fuselage + S_wwing*cdc_wing + S_wnacelles*cdc_nacelle + S_wHT*0.008 + S_wVT * 0.008) + cd_wave
 	print("\n\033[1m\033[4m Drag & Class II Weight Estimation \033[0m")
@@ -480,8 +487,8 @@ def runthatshit(c_d0, oswald, run, M_oeinput):
 	H_t_H_v = 0 #IDK
 	Nl = 1.5 * 3 # 1.5 * 3 wheels
 	Wl = M_MTO * 0.87 # 1.5 * 12 wheels
-	Lm = 6 #main landing gear length
-	Ln = 6 #nose landing gear length
+	Lm = 2.25 #main landing gear length
+	Ln = 2.25 #nose landing gear length
 	K_ws = 0.75*(1+2*taper_ratio)/(1+taper_ratio)*(span*np.tan(sweep_quarter)/(l_cyl))
 	K_y = 0.3*L_t
 
@@ -533,7 +540,7 @@ while 69:
 	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[d] to change powerplant for next run", "[f] to change fuel fraction, [g] to change m_OE"))
 	plt.suptitle("Dashboard Run #"+str(runcount))
 	while True: 
-		if runcount<1: break
+		if runcount<5: break
 		inp = input()
 		if inp=="s": plt.show()
 		if inp=="d": powerplantparams()
