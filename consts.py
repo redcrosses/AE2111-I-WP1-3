@@ -3,7 +3,7 @@ inputs = 91
 
 #need everywhere
 # max_to_mass = 265625 #kg
-mf = 0.423#0.42
+mf = 0.39 #is best here
 m_OE = 0.5#0.50 #<- values are better
 
 #class I initial
@@ -43,21 +43,6 @@ to_oswald_efficiency = 0.8286
 to_temp = 298
 to_pressure = 95457.84253
 
-#SAR
-specific_fuel_energy = 44e6
-
-#efficiencies
-efficiency_tf = 0.75
-
-#powerplant
-#Trent 500 A340
-bypass_ratio = 7.5
-S_wnac = 50 #[m^2]
-jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
-M_powerplant = 5900*2 #total weight; 2 747 GE CF6-50
-nacelle_diameter = 2.5
-nacelle_length = 4.37
-
 wetted_ratio = 6
 friction_coefficient = 0.0028
 parasite_drag = 0.0075
@@ -67,6 +52,29 @@ climbgradient_massfraction = [1, 1, 1, 1, 0.79]
 climbgradient_zerodrag = [0.0758, 0.0563, 0.0363, 0.0168, 0.0558] # taken from drag polar D:38-
 climbgradient_gradient = [3.2, 0 , 0, 1.2, 2.1]
 climbgradient_oswaldfactor = [0.867622569, 0.828622569, 0.828622569, 0.789622569, 0.867622569]
+
+#SAR
+specific_fuel_energy = 44e6
+
+#efficiencies
+efficiency_tf = 0.75
+
+#powerplant
+#PW PW1000G
+bypass_ratio = 7 #change to 11
+S_wnac = 100 #[m^2] #change to 50
+jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
+M_powerplant = 5200*2 #total weight; change 10000
+nacelle_diameter = 2.5
+nacelle_length = 4.37
+
+# #Some other option
+# bypass_ratio = 10
+# S_wnac = 100 #[m^2]
+# jet_eff = ((cruise_speed)/(22*np.power(bypass_ratio, -0.19)))/specific_fuel_energy * 1000000
+# M_powerplant = 15000 #total weight;
+# nacelle_diameter = 4
+# nacelle_length = 5.5
 
 ## HLDs and Control Surfaces
 sweep_quarter = np.radians(28.39)

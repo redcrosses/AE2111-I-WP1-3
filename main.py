@@ -27,9 +27,7 @@ def aspect_rat(sweep_le,lower_bound, upper_bound):
     result = minimize_scalar(y_numeric, bounds=(lower_bound, upper_bound), method='bounded')
     return result.x  # return the x value
 
-def Class_1_est(liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl, override = False):
-	# energy fuel is like the weird 41sth/kw or idk
-	#t_E is the Loiter time in emergencies
+def Class_1_est(liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_con, m_OE, M_pl, override = False): # energy fuel is like the weird 41sth/kw or idk; t_E is the Loiter time in emergencies
 	g=9.81
 	R_lost = 1/0.7 * (liftoverdrag) * (h_CR + (V_CR**2)/(2*g)) /1000 # lost range via : LIft/Drag , height of cruise, velocity cruise
 	R_eq = (R_nom + R_lost)*(1+f_con)+1.2 * R_div + (t_E * V_CR *60/1000)
@@ -43,7 +41,7 @@ def Class_1_est(liftoverdrag,h_CR,V_CR,jet_eff,energy_fuel,R_nom, R_div,t_E, f_c
 	M_OE= m_OE * M_MTO
 	# print(R_lost, R_eq, R_div, m_f)
 	print("\n\033[1m\033[4m Class I Weight Estimation \033[0m")
-	print("{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}".format("Max TO:", M_MTO, "[kg]", "Operating empty:", M_OE, "[kg]", "Fuel:", M_f, "[kg]", "Fuel mass fraction:", m_f, ""))
+	print("{:24} {:f} {:16}\n{:24} {:f} {:16}\n{:24} {:f} {:16}".format("Max TO:", M_MTO, "[kg]", "Fuel:", M_f, "[kg]", "Fuel mass fraction:", m_f, ""))
 	return(M_OE, M_f, M_MTO, m_f) #in kilos small m is mass fraction, big M is acutal mass
 
 def weight_range(mu_j, liftoverdrag, e_f, M_MTO, M_pl, M_plMax, M_OE, R_nominal, h_CR, V_CR, R_div):
@@ -86,7 +84,6 @@ def climb_rate_list(c_d0,bypass_ratio,aspect_ratio,oswald_efficiency):
 	climb_density = climb_pressure/(287*cruise_temp)
 	highest_cl = np.sqrt(np.pi*c_d0*aspect_ratio*oswald_efficiency)
 	climb_mach = (np.sqrt((wing_loading*2)/(climb_density*highest_cl)))/np.sqrt(1.4*287*240.05)
-	
 	climb_totalpressure = climb_pressure*(1+(1.4-1)/2* climb_mach**2)**3.5
 	climb_deltapressure = climb_totalpressure/101325
 	climb_thrustlapse = climb_deltapressure*(1-(0.43+0.014* bypass_ratio)*np.sqrt(climb_mach))
@@ -189,7 +186,6 @@ def empennage_size(l_fus, cg_aft, l_MAC, S_wing, b):
 	htail_root_c = 2*htail_area/((1+htail_taper)*htail_span)
 	htail_tip_c = htail_root_c*htail_taper
 
-
 	vtail_aero_centre_location = htail_aero_centre_location - 2
 	vtail_moment_arm_cg_aft = vtail_aero_centre_location - cg_aft
 	vtail_c_v = 0.066
@@ -254,6 +250,7 @@ def matchingdiag_print(lines, labels, design_point):
 	plt.gca().set_aspect('auto','box')
 	plt.ylim(0,1)
 	plt.legend()
+	plt.legend(loc=2, prop={'size': 6})
 	plt.grid()
 
 #plane visualiser
@@ -370,15 +367,10 @@ def optimisation(clmax_landing, max_to_mass, c_d0initial):
 	iteratedvalue = argvalue[name[0]]
 
 	diff = span/2 - b_2[1]
-	# print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin))
-	# print("y_2 for HLD:", y_2)
-	# print("b_2 for alieron (select the reasonable one):",b_2)
-	# print("SAR:",SAR)
-	# print(name[0], iteratedvalue)
-	# print("Diff:", diff)
+	# print("\nS: %.5f [m^2] \nSpan: %.5f [m] \nRoot Chord: %.5f [m] \nTip Chord: %.5f [m] \ny_1: %.5f [m] \nHLD margin: %.5f" % (S, span, chord_root,  chord_tip, y_1,  hld_margin)); print("y_2 for HLD:", y_2); print("b_2 for alieron (select the reasonable one):",b_2); print("SAR:",SAR); print(name[0], iteratedvalue); print("Diff:", diff)
 	return SAR, iteratedvalue, S, span, chord_root, chord_tip, S_wf, y_1, y_2, b_2[1], thrust_max, diff
 
-def runthatshit(c_d0, oswald, run):
+def runthatshit(c_d0, oswald, run, M_oeinput):
 	######################################################
 	#class 1 weight estimation
 	global aspect_ratio,M_OE, M_f, M_MTO, m_f,labels,MAC,initial_oswald
@@ -386,14 +378,20 @@ def runthatshit(c_d0, oswald, run):
 	# aspect_ratio = 10 #this reduces the thrust requirement because of the climb rate req
 	override = True
 	if run==1: 	
-		initial_oswald = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_quarter)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(np.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))
-		#override = True
+		initial_oswald = 2/(2-aspect_ratio+np.sqrt(4+aspect_ratio**2 * (1+np.tan(sweep_quarter)**28)))#4.61*(1-0.045*np.power(aspect_ratio,0.68))*np.power(np.cos(sweep_quarter),0.15) - 3.1 #1/(np.pi*aspect_ratio*parasite_drag + (1/0.97))		
+  #override = True
 	else: 
 		initial_oswald = oswald
 		#override = False #makes the fuel mass fraction 0.4 on the first run, then it is calculated
 
 	liftoverdrag = 0.5*np.sqrt((np.pi*aspect_ratio*initial_oswald)/c_d0)
 	M_OE, M_f, M_MTO, m_f = Class_1_est(liftoverdrag, cruise_altitude, cruise_speed, jet_eff, specific_fuel_energy, R_nominal, R_diversion, t_E, f_con, m_OE, M_pl, override)
+	if run==1:
+		pass
+	else:
+		M_OE = M_oeinput
+	print("{:24} {:.5f} {:16}".format("OEW:",M_OE,"[kg]"))
+
 	
 	volume_f = M_f/800 #fuel density
 	weight_range(jet_eff, liftoverdrag, specific_fuel_energy, M_MTO, M_pl , M_pl_max, M_OE , R_nominal , cruise_altitude , cruise_speed , R_diversion)
@@ -499,23 +497,23 @@ def runthatshit(c_d0, oswald, run):
 	# W_class_II.printall()
 	tracker = optimalSAR #	WRITE THE VARIABLE YOU WANT TO TRACK ON A GRAPH ACROSS RUNS HERE
 
-	return c_d0new, cruise_oswald_efficiency, W_class_II.total, tracker
+	return c_d0new, cruise_oswald_efficiency, W_class_II.oew, tracker
 
 c_d0 = 0.0168#from Fred's excel Drag polar section
 oswald = 0.8#initial value (placeholder)
 runcount = 1
+weight_oe = 1
 weights = [[],[]]
 tracks = [[],[]]
 print(sumart)
 print("\033[32;5mpress [enter] to begin\033[0m")
 input()
 
-
 while 69:
 	plt.close()
 	plt.figure(figsize=(20,20))
 	art.tprint("run#"+str(runcount), font="Larry 3D") #browse fonts here :) https://patorjk.com/software/taag/#p=testall&f=Crawford2&t=Type%20Something%20
-	c_d0, oswald, weight_oe, tracked = runthatshit(c_d0, oswald,runcount)
+	c_d0, oswald, weight_oe, tracked = runthatshit(c_d0, oswald,runcount, weight_oe)
 	weights[0].append(runcount); weights[1].append(weight_oe)
 	tracks[0].append(runcount); tracks[1].append(tracked)
 
@@ -535,7 +533,7 @@ while 69:
 	print("{0},\n{1},\n{2},\n{3}".format("[enter] next run", "[s] to show dash", "[d] to change powerplant for next run", "[f] to change fuel fraction, [g] to change m_OE"))
 	plt.suptitle("Dashboard Run #"+str(runcount))
 	while True: 
-		if runcount<5: break
+		if runcount<1: break
 		inp = input()
 		if inp=="s": plt.show()
 		if inp=="d": powerplantparams()
