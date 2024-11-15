@@ -1,4 +1,4 @@
-![alt text](https://pbs.twimg.com/media/F3bNBiiWMAEc-lF.jpg)
+![alt text](bob.jpg)
 
 <h1>Preliminary Aircraft Design Calculator</h1>
 This is the python code used for the course AE2111-II by group B03 (2024) :)
@@ -9,7 +9,7 @@ The code was run using Python version 3.10.9, with the following prerequisites:
 - intersect
 - sympy
 - scipy
-- art
+- art (absolutely necessary)
 
 **Note:** the code is not optimized at all lmao but hey it did its job. The code is not perfect, ex. the wing placement and CG calculations are completely independent of the Class II weight estimations for those repsective parts and the code will only work for engines under the wing. 
 <h1>Usage</h1>
