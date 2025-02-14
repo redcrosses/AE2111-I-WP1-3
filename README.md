@@ -16,3 +16,5 @@ The code largely uses methods described in the ADSEE I course, and class II weig
 The code is not perfect, ex. the wing placement and CG calculations are completely independent of the Class II weight estimations for those repsective parts and the code will only work for engines under the wing. The placement of CGs of different components was also arbitrary.
 <h1>Usage</h1>
 All of the relevant constants used can be found in the consts.py file and changed according to your needs. Then, simply run the main.py file in your python environment and press enter.
+
+![alt text](Example.jpg)
