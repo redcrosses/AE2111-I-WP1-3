@@ -17,4 +17,4 @@ The code is not perfect, ex. the wing placement and CG calculations are complete
 <h1>Usage</h1>
 All of the relevant constants used can be found in the consts.py file and changed according to your needs. Then, simply run the main.py file in your python environment and press enter.
 
-![alt text](Example.jpg)
+![alt text](Example.png)
